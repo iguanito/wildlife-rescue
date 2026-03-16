@@ -3,11 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const inputCls = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500';
 
-const INCOME_REASONS = [
-  'Injured', 'Orphaned', 'Sick', 'Entangled', 'Oiled',
-  'Exhausted', 'Hit by vehicle', 'Window strike', 'Found abandoned', 'Other',
-];
-
 function Field({ label, required, children, half }) {
   return (
     <div className={half ? '' : 'col-span-2'}>
@@ -39,7 +34,7 @@ const EMPTY_FORM = {
   status: 'intake',
   otherDetails: '',
   // Page 2
-  incomeReasons: [],
+  incomeReasons: '',
   rescueDate: '',
   whereFound: '',
   distanceFromCenter: '',
@@ -62,15 +57,6 @@ export default function AnimalCreate() {
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
     setForm((f) => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
-  }
-
-  function toggleReason(reason) {
-    setForm((f) => ({
-      ...f,
-      incomeReasons: f.incomeReasons.includes(reason)
-        ? f.incomeReasons.filter((r) => r !== reason)
-        : [...f.incomeReasons, reason],
-    }));
   }
 
   async function handleSubmit(e) {
@@ -161,28 +147,6 @@ export default function AnimalCreate() {
             </div>
           </section>
 
-          {/* Admission */}
-          <section>
-            <SectionTitle>Admission</SectionTitle>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Intake Date" required half>
-                <input type="date" name="intakeDate" value={form.intakeDate} onChange={handleChange} required className={inputCls} />
-              </Field>
-              <Field label="Status" half>
-                <select name="status" value={form.status} onChange={handleChange} className={inputCls}>
-                  <option value="intake">Intake</option>
-                  <option value="treatment">Treatment</option>
-                  <option value="ready-for-adoption">Ready for Adoption</option>
-                  <option value="released">Released</option>
-                  <option value="deceased">Deceased</option>
-                </select>
-              </Field>
-              <Field label="Placement in Center">
-                <input name="placement" value={form.placement} onChange={handleChange} placeholder="e.g. Enclosure B, Aviary 3" className={inputCls} />
-              </Field>
-            </div>
-          </section>
-
           {/* Other */}
           <section>
             <SectionTitle>Other Details</SectionTitle>
@@ -207,18 +171,7 @@ export default function AnimalCreate() {
           {/* Income reasons */}
           <section>
             <SectionTitle>Income Reason(s)</SectionTitle>
-            <div className="flex flex-wrap gap-2">
-              {INCOME_REASONS.map((reason) => (
-                <label key={reason} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm cursor-pointer select-none transition-colors ${
-                  form.incomeReasons.includes(reason)
-                    ? 'bg-green-700 border-green-700 text-white'
-                    : 'border-gray-300 text-gray-700 hover:border-green-400'
-                }`}>
-                  <input type="checkbox" className="sr-only" checked={form.incomeReasons.includes(reason)} onChange={() => toggleReason(reason)} />
-                  {reason}
-                </label>
-              ))}
-            </div>
+            <textarea name="incomeReasons" value={form.incomeReasons} onChange={handleChange} rows={3} className={inputCls} />
           </section>
 
           {/* Find location */}

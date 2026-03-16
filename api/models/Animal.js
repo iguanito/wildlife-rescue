@@ -19,7 +19,7 @@ const animalSchema = new mongoose.Schema({
   otherDetails: { type: String, trim: true },
 
   // Rescue info
-  incomeReasons: [{ type: String, trim: true }],
+  incomeReasons: { type: String, trim: true },
   rescueDate: { type: Date },
   whereFound: { type: String, trim: true },
   distanceFromCenter: { type: Number },
