@@ -19,6 +19,12 @@ function SectionTitle({ children }) {
   return <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">{children}</h3>;
 }
 
+const STEPS = [
+  { n: 1, label: 'Animal Info' },
+  { n: 2, label: 'Rescue Info' },
+  { n: 3, label: 'Clinical Info' },
+];
+
 const EMPTY_FORM = {
   // Page 1
   givenName: '',
@@ -31,7 +37,6 @@ const EMPTY_FORM = {
   microchipNumber: '',
   placement: '',
   intakeDate: new Date().toISOString().split('T')[0],
-  status: 'intake',
   otherDetails: '',
   // Page 2
   incomeReasons: '',
@@ -45,6 +50,15 @@ const EMPTY_FORM = {
   whoCalled: '',
   callDetails: '',
   otherRescueDetails: '',
+  // Page 3
+  status: 'in-center',
+  arrivalWeight: '',
+  hadTreatment: false,
+  underVigilance: false,
+  inClinic: false,
+  firstExamination: '',
+  clinicalEvolution: '',
+  necropsyDetails: '',
 };
 
 export default function AnimalCreate() {
@@ -88,24 +102,22 @@ export default function AnimalCreate() {
 
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-6">
-        {[1, 2].map((s) => (
-          <div key={s} className="flex items-center gap-2">
+        {STEPS.map(({ n, label }) => (
+          <div key={n} className="flex items-center gap-2">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${
-              s === step ? 'bg-green-700 text-white' : s < step ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-500'
+              n === step ? 'bg-green-700 text-white' : n < step ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-500'
             }`}>
-              {s}
+              {n}
             </div>
-            <span className={`text-sm ${s === step ? 'font-medium text-gray-900' : 'text-gray-400'}`}>
-              {s === 1 ? 'Animal Info' : 'Rescue Info'}
-            </span>
-            {s < 2 && <span className="text-gray-300 mx-1">→</span>}
+            <span className={`text-sm ${n === step ? 'font-medium text-gray-900' : 'text-gray-400'}`}>{label}</span>
+            {n < 3 && <span className="text-gray-300 mx-1">→</span>}
           </div>
         ))}
       </div>
 
+      {/* Page 1 — Animal Info */}
       {step === 1 && (
         <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="bg-white rounded-lg shadow p-6 space-y-6">
-          {/* Identity */}
           <section>
             <SectionTitle>Identity</SectionTitle>
             <div className="grid grid-cols-2 gap-4">
@@ -124,7 +136,6 @@ export default function AnimalCreate() {
             </div>
           </section>
 
-          {/* Biology */}
           <section>
             <SectionTitle>Biology</SectionTitle>
             <div className="grid grid-cols-2 gap-4">
@@ -147,7 +158,6 @@ export default function AnimalCreate() {
             </div>
           </section>
 
-          {/* Other */}
           <section>
             <SectionTitle>Other Details</SectionTitle>
             <textarea name="otherDetails" value={form.otherDetails} onChange={handleChange} rows={4} className={inputCls} />
@@ -157,24 +167,19 @@ export default function AnimalCreate() {
             <button type="submit" className="bg-green-700 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-800">
               Next: Rescue Info →
             </button>
-            <Link to="/animals" className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">
-              Cancel
-            </Link>
+            <Link to="/animals" className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</Link>
           </div>
         </form>
       )}
 
+      {/* Page 2 — Rescue Info */}
       {step === 2 && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-
-          {/* Income reasons */}
+        <form onSubmit={(e) => { e.preventDefault(); setStep(3); }} className="bg-white rounded-lg shadow p-6 space-y-6">
           <section>
             <SectionTitle>Income Reason(s)</SectionTitle>
             <textarea name="incomeReasons" value={form.incomeReasons} onChange={handleChange} rows={3} className={inputCls} />
           </section>
 
-          {/* Find location */}
           <section>
             <SectionTitle>Where Found</SectionTitle>
             <div className="grid grid-cols-2 gap-4">
@@ -200,7 +205,6 @@ export default function AnimalCreate() {
             </div>
           </section>
 
-          {/* Contact */}
           <section>
             <SectionTitle>Contact</SectionTitle>
             <div className="grid grid-cols-2 gap-4">
@@ -216,22 +220,75 @@ export default function AnimalCreate() {
             </div>
           </section>
 
-          {/* Other rescue details */}
           <section>
             <SectionTitle>Other Rescue Details</SectionTitle>
             <textarea name="otherRescueDetails" value={form.otherRescueDetails} onChange={handleChange} rows={4} className={inputCls} />
           </section>
 
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={() => setStep(1)} className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">
-              ← Back
+            <button type="button" onClick={() => setStep(1)} className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">← Back</button>
+            <button type="submit" className="bg-green-700 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-800">
+              Next: Clinical Info →
             </button>
+            <Link to="/animals" className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</Link>
+          </div>
+        </form>
+      )}
+
+      {/* Page 3 — Clinical Info */}
+      {step === 3 && (
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+          {error && <p className="text-red-600 text-sm">{error}</p>}
+
+          <section>
+            <SectionTitle>Status &amp; Measurements</SectionTitle>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Status" half>
+                <select name="status" value={form.status} onChange={handleChange} className={inputCls}>
+                  <option value="in-center">In the center</option>
+                  <option value="released">Released</option>
+                  <option value="dead">Dead</option>
+                </select>
+              </Field>
+              <Field label="Arrival Weight (g)" half>
+                <input type="number" min="0" step="0.1" name="arrivalWeight" value={form.arrivalWeight} onChange={handleChange} className={inputCls} />
+              </Field>
+            </div>
+            <div className="flex flex-col gap-2 mt-4">
+              {[
+                { name: 'hadTreatment', label: 'Had treatment' },
+                { name: 'underVigilance', label: 'Under vigilance' },
+                { name: 'inClinic', label: 'In clinic' },
+              ].map(({ name, label }) => (
+                <label key={name} className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" name={name} checked={form[name]} onChange={handleChange} className="w-4 h-4 accent-green-700" />
+                  <span className="text-sm text-gray-700">{label}</span>
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <SectionTitle>Clinical Notes</SectionTitle>
+            <div className="space-y-4">
+              <Field label="First Clinical Examination / Injuries">
+                <textarea name="firstExamination" value={form.firstExamination} onChange={handleChange} rows={4} className={inputCls} />
+              </Field>
+              <Field label="Clinical Evolution">
+                <textarea name="clinicalEvolution" value={form.clinicalEvolution} onChange={handleChange} rows={4} className={inputCls} />
+              </Field>
+              <Field label="Necropsy Details">
+                <textarea name="necropsyDetails" value={form.necropsyDetails} onChange={handleChange} rows={4} className={inputCls} />
+              </Field>
+            </div>
+          </section>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => setStep(2)} className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">← Back</button>
             <button type="submit" disabled={saving} className="bg-green-700 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-800 disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Animal'}
             </button>
-            <Link to="/animals" className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">
-              Cancel
-            </Link>
+            <Link to="/animals" className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</Link>
           </div>
         </form>
       )}

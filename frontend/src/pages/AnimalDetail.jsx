@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 
-const STATUS_OPTIONS = ['intake', 'treatment', 'ready-for-adoption', 'released', 'deceased'];
+const STATUS_OPTIONS = [
+  { value: 'in-center', label: 'In the center' },
+  { value: 'released', label: 'Released' },
+  { value: 'dead', label: 'Dead' },
+];
 const inputCls = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500';
 
 export default function AnimalDetail() {
@@ -120,7 +124,7 @@ export default function AnimalDetail() {
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
                 <select value={editForm.status} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))} className={inputCls}>
-                  {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
             </div>

@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const STATUS_COLORS = {
-  intake: 'bg-blue-100 text-blue-800',
-  treatment: 'bg-yellow-100 text-yellow-800',
-  'ready-for-adoption': 'bg-green-100 text-green-800',
-  adopted: 'bg-purple-100 text-purple-800',
+  'in-center': 'bg-blue-100 text-blue-800',
   released: 'bg-teal-100 text-teal-800',
-  deceased: 'bg-gray-100 text-gray-600',
+  dead: 'bg-gray-100 text-gray-600',
+};
+
+const STATUS_LABELS = {
+  'in-center': 'In the center',
+  released: 'Released',
+  dead: 'Dead',
 };
 
 export default function AnimalList() {
@@ -56,11 +59,9 @@ export default function AnimalList() {
           className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
         >
           <option value="">All statuses</option>
-          <option value="intake">Intake</option>
-          <option value="treatment">Treatment</option>
-          <option value="ready-for-adoption">Ready for Adoption</option>
+          <option value="in-center">In the center</option>
           <option value="released">Released</option>
-          <option value="deceased">Deceased</option>
+          <option value="dead">Dead</option>
         </select>
       </div>
 
@@ -99,7 +100,7 @@ export default function AnimalList() {
                         STATUS_COLORS[a.status] ?? 'bg-gray-100 text-gray-600'
                       }`}
                     >
-                      {a.status}
+                      {STATUS_LABELS[a.status] ?? a.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">

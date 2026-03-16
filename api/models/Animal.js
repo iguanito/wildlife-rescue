@@ -13,8 +13,8 @@ const animalSchema = new mongoose.Schema({
   intakeDate: { type: Date, required: true, default: Date.now },
   status: {
     type: String,
-    enum: ['intake', 'treatment', 'ready-for-adoption', 'released', 'deceased'],
-    default: 'intake',
+    enum: ['in-center', 'released', 'dead'],
+    default: 'in-center',
   },
   otherDetails: { type: String, trim: true },
 
@@ -30,6 +30,15 @@ const animalSchema = new mongoose.Schema({
   whoCalled: { type: String, trim: true },
   callDetails: { type: String, trim: true },
   otherRescueDetails: { type: String, trim: true },
+
+  // Clinical info
+  arrivalWeight: { type: Number },
+  hadTreatment: { type: Boolean, default: false },
+  underVigilance: { type: Boolean, default: false },
+  inClinic: { type: Boolean, default: false },
+  firstExamination: { type: String, trim: true },
+  clinicalEvolution: { type: String, trim: true },
+  necropsyDetails: { type: String, trim: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Animal', animalSchema);
