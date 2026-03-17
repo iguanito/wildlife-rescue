@@ -13,7 +13,7 @@ const animalSchema = new mongoose.Schema({
   intakeDate: { type: Date, required: true, default: Date.now },
   status: {
     type: String,
-    enum: ['in-center', 'released', 'dead'],
+    enum: ['in-center', 'released', 'deceased'],
     default: 'in-center',
   },
   otherDetails: { type: String, trim: true },

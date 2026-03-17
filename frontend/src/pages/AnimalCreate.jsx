@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import SpeciesAutocomplete from '../components/SpeciesAutocomplete';
+import MapPicker from '../components/MapPicker';
 
 const inputCls = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500';
 
@@ -23,6 +25,7 @@ const STEPS = [
   { n: 1, label: 'Animal Info' },
   { n: 2, label: 'Rescue Info' },
   { n: 3, label: 'Clinical Info' },
+  { n: 4, label: 'Status' },
 ];
 
 const EMPTY_FORM = {
@@ -110,7 +113,7 @@ export default function AnimalCreate() {
               {n}
             </div>
             <span className={`text-sm ${n === step ? 'font-medium text-gray-900' : 'text-gray-400'}`}>{label}</span>
-            {n < 3 && <span className="text-gray-300 mx-1">→</span>}
+            {n < 4 && <span className="text-gray-300 mx-1">→</span>}
           </div>
         ))}
       </div>
@@ -124,15 +127,32 @@ export default function AnimalCreate() {
               <Field label="Given Name" half>
                 <input name="givenName" value={form.givenName} onChange={handleChange} className={inputCls} />
               </Field>
-              <Field label="Common Name" half>
-                <input name="commonName" value={form.commonName} onChange={handleChange} className={inputCls} />
-              </Field>
-              <Field label="Scientific Name" half>
-                <input name="scientificName" value={form.scientificName} onChange={handleChange} className={inputCls} />
-              </Field>
               <Field label="Animal Group" half>
-                <input name="animalGroup" value={form.animalGroup} onChange={handleChange} placeholder="e.g. Raptor, Mammal…" className={inputCls} />
+                <select name="animalGroup" value={form.animalGroup} onChange={handleChange} className={inputCls}>
+                  <option value="">— Select —</option>
+                  <option value="Mammal">Mammal</option>
+                  <option value="Bird">Bird</option>
+                  <option value="Reptile">Reptile</option>
+                </select>
               </Field>
+              <div className="col-span-2">
+                <SpeciesAutocomplete
+                  label="Common Name"
+                  field="commonName"
+                  value={form.commonName}
+                  onChange={(field, val) => setForm((f) => ({ ...f, [field]: val }))}
+                  onSelect={(s) => setForm((f) => ({ ...f, commonName: s.commonName, scientificName: s.scientificName, animalGroup: s.group }))}
+                />
+              </div>
+              <div className="col-span-2">
+                <SpeciesAutocomplete
+                  label="Scientific Name"
+                  field="scientificName"
+                  value={form.scientificName}
+                  onChange={(field, val) => setForm((f) => ({ ...f, [field]: val }))}
+                  onSelect={(s) => setForm((f) => ({ ...f, commonName: s.commonName, scientificName: s.scientificName, animalGroup: s.group }))}
+                />
+              </div>
             </div>
           </section>
 
@@ -163,11 +183,11 @@ export default function AnimalCreate() {
             <textarea name="otherDetails" value={form.otherDetails} onChange={handleChange} rows={4} className={inputCls} />
           </section>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2 items-center">
             <button type="submit" className="bg-green-700 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-800">
               Next: Rescue Info →
             </button>
-            <Link to="/animals" className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</Link>
+            <Link to="/animals" className="ml-auto px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</Link>
           </div>
         </form>
       )}
@@ -192,12 +212,13 @@ export default function AnimalCreate() {
               <Field label="Location Description">
                 <input name="whereFound" value={form.whereFound} onChange={handleChange} placeholder="Address, landmark, area…" className={inputCls} />
               </Field>
-              <Field label="Latitude" half>
-                <input type="number" step="any" name="latitude" value={form.latitude} onChange={handleChange} placeholder="e.g. 48.8566" className={inputCls} />
-              </Field>
-              <Field label="Longitude" half>
-                <input type="number" step="any" name="longitude" value={form.longitude} onChange={handleChange} placeholder="e.g. 2.3522" className={inputCls} />
-              </Field>
+              <div className="col-span-2">
+                <MapPicker
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                  onSelect={(lat, lng) => setForm((f) => ({ ...f, latitude: lat, longitude: lng }))}
+                />
+              </div>
               <div className="col-span-2 flex items-center gap-2 mt-1">
                 <input type="checkbox" id="captureNeeded" name="captureNeeded" checked={form.captureNeeded} onChange={handleChange} className="w-4 h-4 accent-green-700 cursor-pointer" />
                 <label htmlFor="captureNeeded" className="text-sm text-gray-700 cursor-pointer">Capture was needed</label>
@@ -225,31 +246,24 @@ export default function AnimalCreate() {
             <textarea name="otherRescueDetails" value={form.otherRescueDetails} onChange={handleChange} rows={4} className={inputCls} />
           </section>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2 items-center">
             <button type="button" onClick={() => setStep(1)} className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">← Back</button>
             <button type="submit" className="bg-green-700 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-800">
               Next: Clinical Info →
             </button>
-            <Link to="/animals" className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</Link>
+            <Link to="/animals" className="ml-auto px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</Link>
           </div>
         </form>
       )}
 
       {/* Page 3 — Clinical Info */}
       {step === 3 && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+        <form onSubmit={(e) => { e.preventDefault(); setStep(4); }} className="bg-white rounded-lg shadow p-6 space-y-6">
           {error && <p className="text-red-600 text-sm">{error}</p>}
 
           <section>
-            <SectionTitle>Status &amp; Measurements</SectionTitle>
+            <SectionTitle>Measurements</SectionTitle>
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Status" half>
-                <select name="status" value={form.status} onChange={handleChange} className={inputCls}>
-                  <option value="in-center">In the center</option>
-                  <option value="released">Released</option>
-                  <option value="dead">Dead</option>
-                </select>
-              </Field>
               <Field label="Arrival Weight (g)" half>
                 <input type="number" min="0" step="0.1" name="arrivalWeight" value={form.arrivalWeight} onChange={handleChange} className={inputCls} />
               </Field>
@@ -283,12 +297,38 @@ export default function AnimalCreate() {
             </div>
           </section>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2 items-center">
             <button type="button" onClick={() => setStep(2)} className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">← Back</button>
+            <button type="submit" className="bg-green-700 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-800">
+              Next: Status →
+            </button>
+            <Link to="/animals" className="ml-auto px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</Link>
+          </div>
+        </form>
+      )}
+
+      {/* Page 4 — Status */}
+      {step === 4 && (
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+          {error && <p className="text-red-600 text-sm">{error}</p>}
+
+          <section>
+            <SectionTitle>Status</SectionTitle>
+            <Field label="Status">
+              <select name="status" value={form.status} onChange={handleChange} className={inputCls}>
+                <option value="in-center">In the center</option>
+                <option value="released">Released</option>
+                <option value="deceased">Deceased</option>
+              </select>
+            </Field>
+          </section>
+
+          <div className="flex gap-3 pt-2 items-center">
+            <button type="button" onClick={() => setStep(3)} className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">← Back</button>
             <button type="submit" disabled={saving} className="bg-green-700 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-green-800 disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Animal'}
             </button>
-            <Link to="/animals" className="px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</Link>
+            <Link to="/animals" className="ml-auto px-5 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</Link>
           </div>
         </form>
       )}

@@ -4,6 +4,7 @@ const connectDB = require('./db');
 
 const animalsRouter = require('./routes/animals');
 const medicalRouter = require('./routes/medical');
+const speciesRouter = require('./routes/species');
 const app = express();
 
 app.use(cors());
@@ -21,6 +22,7 @@ app.use(async (req, res, next) => {
 
 app.use('/api/animals', animalsRouter);
 app.use('/api/medical', medicalRouter);
+app.use('/api/species', speciesRouter);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

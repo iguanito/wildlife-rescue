@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom';
 const STATUS_COLORS = {
   'in-center': 'bg-blue-100 text-blue-800',
   released: 'bg-teal-100 text-teal-800',
-  dead: 'bg-gray-100 text-gray-600',
+  deceased: 'bg-gray-100 text-gray-600',
 };
 
 const STATUS_LABELS = {
   'in-center': 'In the center',
   released: 'Released',
-  dead: 'Dead',
+  deceased: 'Deceased',
 };
 
 export default function AnimalList() {
@@ -61,7 +61,7 @@ export default function AnimalList() {
           <option value="">All statuses</option>
           <option value="in-center">In the center</option>
           <option value="released">Released</option>
-          <option value="dead">Dead</option>
+          <option value="deceased">Deceased</option>
         </select>
       </div>
 
