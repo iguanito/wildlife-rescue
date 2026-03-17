@@ -127,32 +127,36 @@ export default function AnimalCreate() {
               <Field label="Given Name" half>
                 <input name="givenName" value={form.givenName} onChange={handleChange} className={inputCls} />
               </Field>
-              <Field label="Animal Group" half>
-                <select name="animalGroup" value={form.animalGroup} onChange={handleChange} className={inputCls}>
-                  <option value="">— Select —</option>
-                  <option value="Mammal">Mammal</option>
-                  <option value="Bird">Bird</option>
-                  <option value="Reptile">Reptile</option>
-                </select>
-              </Field>
+              {form.animalGroup && (
+                <div className="flex items-end pb-0.5">
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                    form.animalGroup === 'Bird' ? 'bg-sky-100 text-sky-700' :
+                    form.animalGroup === 'Mammal' ? 'bg-amber-100 text-amber-700' :
+                    'bg-emerald-100 text-emerald-700'
+                  }`}>{form.animalGroup}</span>
+                </div>
+              )}
               <div className="col-span-2">
                 <SpeciesAutocomplete
-                  label="Common Name"
+                  label="Search by common or scientific name"
                   field="commonName"
-                  value={form.commonName}
-                  onChange={(field, val) => setForm((f) => ({ ...f, [field]: val }))}
+                  value={form.commonName || form.scientificName}
+                  onChange={(_, val) => setForm((f) => ({ ...f, commonName: val, scientificName: '' }))}
                   onSelect={(s) => setForm((f) => ({ ...f, commonName: s.commonName, scientificName: s.scientificName, animalGroup: s.group }))}
                 />
               </div>
-              <div className="col-span-2">
-                <SpeciesAutocomplete
-                  label="Scientific Name"
-                  field="scientificName"
-                  value={form.scientificName}
-                  onChange={(field, val) => setForm((f) => ({ ...f, [field]: val }))}
-                  onSelect={(s) => setForm((f) => ({ ...f, commonName: s.commonName, scientificName: s.scientificName, animalGroup: s.group }))}
-                />
-              </div>
+              {form.commonName && (
+                <div className="col-span-2 grid grid-cols-2 gap-3 bg-gray-50 rounded-md px-3 py-2 text-sm">
+                  <div>
+                    <p className="text-xs text-gray-400">Common Name</p>
+                    <p className="text-gray-900">{form.commonName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Scientific Name</p>
+                    <p className="text-gray-900 italic">{form.scientificName}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
