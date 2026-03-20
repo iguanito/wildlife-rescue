@@ -43,7 +43,13 @@
 - Add `createdBy` field to MedicalRecord schema to track audit trail
 - User model includes email (unique), password (bcrypt hashed), role enum, and soft-delete support
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Test infrastructure: Jest + Supertest setup, test DB helpers, 10 failing stubs for AUTH/ACCESS requirements
+- [ ] 01-02-PLAN.md — API auth core: User model, auth middleware, login/logout/me routes, MedicalRecord retrofit, seed script, index.js wiring
+- [ ] 01-03-PLAN.md — Route retrofit: requireRole() on all existing animals/medical/species write routes; ACCESS integration tests
+- [ ] 01-04-PLAN.md — Frontend auth: AuthContext, ProtectedRoute, Login page, role-aware Layout, app wiring + human verification
 
 ---
 
@@ -185,7 +191,7 @@
 
 | Phase | Goal | Requirements | Success Criteria | Status |
 |-------|------|--------------|------------------|--------|
-| 1 | Auth & Authorization | 9 | 8 | Not started |
+| 1 | Auth & Authorization | 9 | 8 | Planning complete |
 | 2 | Detail & Care Foundation | 5 | 6 | Not started |
 | 3 | Daily Dashboard | 3 | 6 | Not started |
 | 4 | Outcome & Status | 3 | 8 | Not started |
@@ -259,4 +265,4 @@ All phases depend on Phase 1 because every user action needs `req.user` context 
 
 *Roadmap created: 2026-03-20*
 *Granularity: Standard (6 phases, all natural delivery boundaries)*
-*Status: Ready for Phase 1 planning*
+*Status: Phase 1 planning complete (2026-03-20)*
