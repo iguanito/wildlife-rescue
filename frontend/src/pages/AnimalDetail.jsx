@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Toast, useToast } from '../components/Toast';
 
 const STATUS_OPTIONS = [
   { value: 'in-center', label: 'In the center' },
@@ -15,6 +16,8 @@ export default function AnimalDetail() {
   const navigate = useNavigate();
   const canWrite = user && ['staff', 'vet', 'admin'].includes(user.role);
   const canAddMedical = user && ['vet', 'admin'].includes(user.role);
+
+  const { message: toastMsg, showToast, dismissToast } = useToast();
 
   const [animal, setAnimal] = useState(null);
   const [records, setRecords] = useState([]);
@@ -48,6 +51,7 @@ export default function AnimalDetail() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editForm),
     });
+    if (res.status === 403) { showToast('Permission denied'); return; }
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
     setAnimal(data);
@@ -56,7 +60,8 @@ export default function AnimalDetail() {
 
   async function deleteAnimal() {
     if (!confirm(`Delete ${animal.name}? This cannot be undone.`)) return;
-    await fetch(`/api/animals/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/animals/${id}`, { method: 'DELETE' });
+    if (res.status === 403) { showToast('Permission denied'); return; }
     navigate('/animals');
   }
 
@@ -69,6 +74,7 @@ export default function AnimalDetail() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(medForm),
       });
+      if (res.status === 403) { showToast('Permission denied'); return; }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setRecords((r) => [data, ...r]);
@@ -81,7 +87,8 @@ export default function AnimalDetail() {
 
   async function deleteMedRecord(recId) {
     if (!confirm('Delete this record?')) return;
-    await fetch(`/api/medical/${recId}`, { method: 'DELETE' });
+    const res = await fetch(`/api/medical/${recId}`, { method: 'DELETE' });
+    if (res.status === 403) { showToast('Permission denied'); return; }
     setRecords((r) => r.filter((x) => x._id !== recId));
   }
 
@@ -91,6 +98,7 @@ export default function AnimalDetail() {
 
   return (
     <div className="max-w-2xl space-y-8">
+      <Toast message={toastMsg} onDismiss={dismissToast} />
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
