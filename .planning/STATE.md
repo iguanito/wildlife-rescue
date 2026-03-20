@@ -2,22 +2,22 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1 (Authentication & Authorization) — Ready for planning
-status: completed
-last_updated: "2026-03-20T18:11:37.486Z"
+current_phase: 1 (Authentication & Authorization) — Plan 02 complete (2/4)
+status: executing
+last_updated: "2026-03-20T18:19:00Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
-  percent: 25
+  completed_plans: 2
+  percent: 50
 ---
 
 # Project State: Wildlife Rescue Manager
 
 **Milestone:** v1 Feature Implementation
-**Current Phase:** 1 (Authentication & Authorization) — Plan 01 complete (1/4)
-**Session:** Plan 01-01 executed 2026-03-20 — test infrastructure in place
+**Current Phase:** 1 (Authentication & Authorization) — Plan 02 complete (2/4)
+**Session:** Plan 01-02 executed 2026-03-20 — User model, auth routes, middleware wall in place
 
 ---
 
@@ -37,11 +37,11 @@ progress:
 
 **Milestone:** v1 (6 phases planned)
 **Phase:** 1 (Authentication & Authorization)
-**Status:** In progress — Plan 01 complete, Plan 02 next
+**Status:** In progress — Plan 02 complete, Plan 03 next
 
 **Progress:**
-[███░░░░░░░] 25%
-Phase 1 (Auth)         ██▢▢▢▢▢▢▢▢ 25% — In progress (1/4 plans done)
+[█████░░░░░] 50%
+Phase 1 (Auth)         ████▢▢▢▢▢▢ 50% — In progress (2/4 plans done)
 Phase 2 (Detail)       ▢▢▢▢▢▢▢▢▢▢ 0% — Blocked (Phase 1)
 Phase 3 (Dashboard)    ▢▢▢▢▢▢▢▢▢▢ 0% — Blocked (Phase 2)
 Phase 4 (Outcome)      ▢▢▢▢▢▢▢▢▢▢ 0% — Blocked (Phase 1, 2)
@@ -79,7 +79,13 @@ Phase 6 (Reporting)    ▢▢▢▢▢▢▢▢▢▢ 0% — Blocked (Phase 2, 4
 
 2. **Auth-first strategy:** Phase 1 is foundational. Every route needs `req.user` and role validation. No incremental patching; all existing routes retrofitted atomically in Phase 1.
 
-2. **CareLog compound index:** Created in Phase 2, not retroactively. Index on `{animalId: 1, date: -1, type: 1}` ensures dashboard queries scale.
+3. **bcryptjs promoted to production dependency:** Plan 02 routes/auth.js and scripts/seed-admin.js require bcryptjs at runtime, not just in tests. Moved from devDependencies to dependencies in package.json.
+
+4. **CORS credentials: true required:** Cookie-based auth needs CORS `credentials: true` and explicit origin. Without it, browsers silently drop cookies on cross-origin requests from Vite dev server.
+
+5. **Test env MONGODB_URI:** api/tests/helpers/env.js must set MONGODB_URI to the test DB or Express middleware's connectDB() fails with undefined URI, causing 500 errors on all auth route tests.
+
+6. **CareLog compound index:** Created in Phase 2, not retroactively. Index on `{animalId: 1, date: -1, type: 1}` ensures dashboard queries scale.
 
 3. **Soft deletes, not hard deletes:** Animal, User, and Outcome records use `deletedAt` field for archival safety. Prevents accidental data loss.
 
@@ -126,9 +132,10 @@ Phase 6 (Reporting)    ▢▢▢▢▢▢▢▢▢▢ 0% — Blocked (Phase 2, 4
 
 **When resuming work:**
 
-1. Next command: `/gsd:execute-phase` for Plan 02 (01-02-PLAN.md) — User model + auth routes
-2. Test infrastructure is ready: `npm test --prefix api` runs 10 failing stubs
-3. fixtures.js createTestUser() will work as soon as api/models/User.js is created
+1. Next command: `/gsd:execute-phase` for Plan 03 (01-03-PLAN.md) — Role-based access control middleware
+2. AUTH-01 through AUTH-04 tests pass green; ACCESS-01 through ACCESS-05 stubs remain red (Plan 03 work)
+3. requireRole() factory middleware exists and ready to be applied to write routes in Plan 03
+4. Before running dev server: add JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD to .env; run `npm run seed:admin --prefix api`
 
 **Blockers / Open Questions:**
 
