@@ -1,10 +1,21 @@
-import { NavLink } from 'react-router-dom';
-
-const navItems = [
-  { to: '/animals', label: 'Animals' },
-];
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Layout({ children }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
+
+  // Phase 1: only Animals in nav (per D-06)
+  // Dashboard, Users, Reports will be added in phases 3, 5, 6 respectively
+  const navItems = [
+    { to: '/animals', label: 'Animals' },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <aside className="w-56 bg-green-800 text-white flex flex-col shrink-0">
@@ -26,6 +37,18 @@ export default function Layout({ children }) {
             </NavLink>
           ))}
         </nav>
+        {user && (
+          <div className="px-4 py-4 border-t border-green-700">
+            <p className="text-xs text-green-300 truncate mb-2">{user.email}</p>
+            <p className="text-xs text-green-400 mb-3 capitalize">{user.role}</p>
+            <button
+              onClick={handleLogout}
+              className="w-full text-left text-sm text-green-200 hover:text-white hover:bg-green-700 px-2 py-1 rounded transition-colors"
+            >
+              Log Out
+            </button>
+          </div>
+        )}
       </aside>
       <main className="flex-1 p-8 overflow-auto">{children}</main>
     </div>

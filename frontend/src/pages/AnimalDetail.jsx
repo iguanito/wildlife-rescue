@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const STATUS_OPTIONS = [
   { value: 'in-center', label: 'In the center' },
@@ -9,8 +10,11 @@ const STATUS_OPTIONS = [
 const inputCls = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500';
 
 export default function AnimalDetail() {
+  const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
+  const canWrite = user && ['staff', 'vet', 'admin'].includes(user.role);
+  const canAddMedical = user && ['vet', 'admin'].includes(user.role);
 
   const [animal, setAnimal] = useState(null);
   const [records, setRecords] = useState([]);
@@ -94,14 +98,16 @@ export default function AnimalDetail() {
           <h2 className="text-2xl font-bold text-gray-900 mt-1">{animal.name}</h2>
           <p className="text-gray-500 text-sm">{animal.species}</p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => setEditing(!editing)} className="text-sm px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50">
-            {editing ? 'Cancel' : 'Edit'}
-          </button>
-          <button onClick={deleteAnimal} className="text-sm px-3 py-1.5 border border-red-300 text-red-600 rounded-md hover:bg-red-50">
-            Delete
-          </button>
-        </div>
+        {canWrite && (
+          <div className="flex gap-2">
+            <button onClick={() => setEditing(!editing)} className="text-sm px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50">
+              {editing ? 'Cancel' : 'Edit'}
+            </button>
+            <button onClick={deleteAnimal} className="text-sm px-3 py-1.5 border border-red-300 text-red-600 rounded-md hover:bg-red-50">
+              Delete
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Animal Info */}
@@ -160,9 +166,11 @@ export default function AnimalDetail() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-900">Medical Records</h3>
-          <button onClick={() => setShowMedForm(!showMedForm)} className="text-sm px-3 py-1.5 bg-green-700 text-white rounded-md hover:bg-green-800">
-            {showMedForm ? 'Cancel' : '+ Add Record'}
-          </button>
+          {canAddMedical && (
+            <button onClick={() => setShowMedForm(!showMedForm)} className="text-sm px-3 py-1.5 bg-green-700 text-white rounded-md hover:bg-green-800">
+              {showMedForm ? 'Cancel' : '+ Add Record'}
+            </button>
+          )}
         </div>
 
         {showMedForm && (
@@ -209,7 +217,9 @@ export default function AnimalDetail() {
                     {r.followUpDate && ` · Follow-up: ${new Date(r.followUpDate).toLocaleDateString()}`}
                   </p>
                 </div>
-                <button onClick={() => deleteMedRecord(r._id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
+                {canAddMedical && (
+                  <button onClick={() => deleteMedRecord(r._id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
+                )}
               </div>
             </div>
           ))}

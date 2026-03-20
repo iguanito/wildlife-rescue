@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const STATUS_COLORS = {
   'in-center': 'bg-blue-100 text-blue-800',
@@ -14,6 +15,7 @@ const STATUS_LABELS = {
 };
 
 export default function AnimalList() {
+  const { user } = useAuth();
   const [animals, setAnimals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,12 +39,14 @@ export default function AnimalList() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Animals</h2>
-        <Link
-          to="/animals/new"
-          className="bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-800 transition-colors"
-        >
-          + Add Animal
-        </Link>
+        {user && ['staff', 'vet', 'admin'].includes(user.role) && (
+          <Link
+            to="/animals/new"
+            className="bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-800 transition-colors"
+          >
+            + Add Animal
+          </Link>
+        )}
       </div>
 
       <div className="flex gap-3 mb-5">
