@@ -75,7 +75,13 @@ Plans:
 - Animal detail page queries MedicalRecords and CareLog and merges chronologically
 - Timeline is read-only in Phase 2; edits added in later phases if needed
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — CareLog model + nested API routes: schema with compound index, GET/POST /carelogs endpoints in animals router
+- [ ] 02-02-PLAN.md — Wave 0 test stubs: care-log.test.js (CARE-01/02/03) and animal-detail.test.js (DETAIL-01/02)
+- [ ] 02-03-PLAN.md — AnimalDetail frontend refactor: unified timeline merge, day grouping, compact/expand care logs, inline add-care-log form + human verification
+- [ ] 02-04-PLAN.md — Integration tests: fill in stub implementations for all 5 Phase 2 requirement tests
 
 ---
 
@@ -265,4 +271,4 @@ All phases depend on Phase 1 because every user action needs `req.user` context 
 
 *Roadmap created: 2026-03-20*
 *Granularity: Standard (6 phases, all natural delivery boundaries)*
-*Status: Phase 1 planning complete (2026-03-20)*
+*Status: Phase 1 planning complete (2026-03-20); Phase 2 planning complete (2026-03-20)*
