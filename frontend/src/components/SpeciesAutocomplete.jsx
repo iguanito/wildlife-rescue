@@ -57,6 +57,7 @@ export default function SpeciesAutocomplete({ label, field, value, onChange, onS
               <span className={`text-xs px-1.5 py-0.5 rounded-full shrink-0 ${
                 s.group === 'Bird' ? 'bg-sky-100 text-sky-700' :
                 s.group === 'Mammal' ? 'bg-amber-100 text-amber-700' :
+                s.group === 'Amphibian' ? 'bg-teal-100 text-teal-700' :
                 'bg-emerald-100 text-emerald-700'
               }`}>{s.group}</span>
             </li>

@@ -132,6 +132,7 @@ export default function AnimalCreate() {
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                     form.animalGroup === 'Bird' ? 'bg-sky-100 text-sky-700' :
                     form.animalGroup === 'Mammal' ? 'bg-amber-100 text-amber-700' :
+                    form.animalGroup === 'Amphibian' ? 'bg-teal-100 text-teal-700' :
                     'bg-emerald-100 text-emerald-700'
                   }`}>{form.animalGroup}</span>
                 </div>
