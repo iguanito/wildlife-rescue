@@ -7,18 +7,18 @@
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can log in with email and password
-- [ ] **AUTH-02**: User session persists across browser restarts ("remember me")
-- [ ] **AUTH-03**: User can log out from any page
-- [ ] **AUTH-04**: Each user has one of four roles: admin, staff, vet, volunteer
+- [x] **AUTH-01**: User can log in with email and password
+- [x] **AUTH-02**: User session persists across browser restarts ("remember me")
+- [x] **AUTH-03**: User can log out from any page
+- [x] **AUTH-04**: Each user has one of four roles: admin, staff, vet, volunteer
 
 ### Access Control
 
-- [ ] **ACCESS-01**: Volunteer can view animal records but cannot create or edit
-- [ ] **ACCESS-02**: Staff can create animals and add care logs
-- [ ] **ACCESS-03**: Vet can create and edit medical records
-- [ ] **ACCESS-04**: Admin has full access to all features including user management
-- [ ] **ACCESS-05**: All API write routes enforce server-side role checks
+- [x] **ACCESS-01**: Volunteer can view animal records but cannot create or edit
+- [x] **ACCESS-02**: Staff can create animals and add care logs
+- [x] **ACCESS-03**: Vet can create and edit medical records
+- [x] **ACCESS-04**: Admin has full access to all features including user management
+- [x] **ACCESS-05**: All API write routes enforce server-side role checks
 
 ### User Management
 
@@ -87,15 +87,15 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| ACCESS-01 | Phase 1 | Pending |
-| ACCESS-02 | Phase 1 | Pending |
-| ACCESS-03 | Phase 1 | Pending |
-| ACCESS-04 | Phase 1 | Pending |
-| ACCESS-05 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 1 | Complete |
+| ACCESS-01 | Phase 1 | Complete |
+| ACCESS-02 | Phase 1 | Complete |
+| ACCESS-03 | Phase 1 | Complete |
+| ACCESS-04 | Phase 1 | Complete |
+| ACCESS-05 | Phase 1 | Complete |
 | USER-01 | Phase 5 | Pending |
 | USER-02 | Phase 5 | Pending |
 | USER-03 | Phase 5 | Pending |

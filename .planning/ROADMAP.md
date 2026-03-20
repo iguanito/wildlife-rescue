@@ -46,7 +46,7 @@
 **Plans**: 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Test infrastructure: Jest + Supertest setup, test DB helpers, 10 failing stubs for AUTH/ACCESS requirements
+- [x] 01-01-PLAN.md — Test infrastructure: Jest + Supertest setup, test DB helpers, 10 failing stubs for AUTH/ACCESS requirements
 - [ ] 01-02-PLAN.md — API auth core: User model, auth middleware, login/logout/me routes, MedicalRecord retrofit, seed script, index.js wiring
 - [ ] 01-03-PLAN.md — Route retrofit: requireRole() on all existing animals/medical/species write routes; ACCESS integration tests
 - [ ] 01-04-PLAN.md — Frontend auth: AuthContext, ProtectedRoute, Login page, role-aware Layout, app wiring + human verification
