@@ -150,6 +150,17 @@ Then run once: `npm run seed:admin --prefix api`
 - requireRole() middleware exists and ready for Plan 03 to apply to specific routes
 - MedicalRecord has createdBy field — Plan 03/04 can populate it on record creation
 
+## Self-Check: PASSED
+
+- api/models/User.js: FOUND
+- api/middleware/authenticate.js: FOUND
+- api/middleware/authorize.js: FOUND
+- api/routes/auth.js: FOUND
+- api/scripts/seed-admin.js: FOUND
+- Commit 655d813 (Task 1): FOUND
+- Commit b03f1f3 (Task 2): FOUND
+- Commit acc3b8f (docs): FOUND
+
 ---
 *Phase: 01-authentication-authorization*
 *Completed: 2026-03-20*
