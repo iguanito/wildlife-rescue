@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const Animal = require('../models/Animal');
 const MedicalRecord = require('../models/MedicalRecord');
+const requireRole = require('../middleware/authorize');
 
 // GET /api/animals
 router.get('/', async (req, res) => {
@@ -18,7 +19,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/animals
-router.post('/', async (req, res) => {
+router.post('/', requireRole('staff', 'vet', 'admin'), async (req, res) => {
   try {
     const animal = await Animal.create(req.body);
     res.status(201).json(animal);
@@ -39,7 +40,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // PUT /api/animals/:id
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireRole('staff', 'vet', 'admin'), async (req, res) => {
   try {
     const animal = await Animal.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -53,7 +54,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/animals/:id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireRole('admin'), async (req, res) => {
   try {
     const animal = await Animal.findByIdAndDelete(req.params.id);
     if (!animal) return res.status(404).json({ error: 'Animal not found' });
@@ -75,7 +76,7 @@ router.get('/:id/medical', async (req, res) => {
 });
 
 // POST /api/animals/:id/medical
-router.post('/:id/medical', async (req, res) => {
+router.post('/:id/medical', requireRole('vet', 'admin'), async (req, res) => {
   try {
     const record = await MedicalRecord.create({ ...req.body, animal: req.params.id });
     res.status(201).json(record);
