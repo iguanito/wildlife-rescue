@@ -62,6 +62,13 @@ export default function AnimalDetail() {
   const [careLogs, setCareLogs] = useState([]);
   const [timelineEntries, setTimelineEntries] = useState([]);
 
+  const [showCareForm, setShowCareForm] = useState(false);
+  const [careForm, setCareForm] = useState({ date: new Date().toISOString().split('T')[0], type: 'feeding', value: '', notes: '' });
+  const [careSaving, setCareSaving] = useState(false);
+  const [careError, setCareError] = useState(null);
+
+  const [expanded, setExpanded] = useState({});
+
   useEffect(() => {
     Promise.all([
       fetch(`/api/animals/${id}`).then((r) => r.json()),
@@ -111,7 +118,9 @@ export default function AnimalDetail() {
       if (res.status === 403) { showToast('Permission denied'); return; }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setRecords((r) => [data, ...r]);
+      const newRecords = [data, ...records];
+      setRecords(newRecords);
+      setTimelineEntries(buildTimeline(animal, newRecords, careLogs));
       setMedForm({ description: '', treatment: '', vet: '', date: '', followUpDate: '' });
       setShowMedForm(false);
     } finally {
@@ -123,7 +132,35 @@ export default function AnimalDetail() {
     if (!confirm('Delete this record?')) return;
     const res = await fetch(`/api/medical/${recId}`, { method: 'DELETE' });
     if (res.status === 403) { showToast('Permission denied'); return; }
-    setRecords((r) => r.filter((x) => x._id !== recId));
+    const newRecords = records.filter((x) => x._id !== recId);
+    setRecords(newRecords);
+    setTimelineEntries(buildTimeline(animal, newRecords, careLogs));
+  }
+
+  async function addCareLog(e) {
+    e.preventDefault();
+    setCareSaving(true);
+    setCareError(null);
+    try {
+      const res = await fetch(`/api/animals/${id}/carelogs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(careForm),
+      });
+      if (res.status === 403) { showToast('Permission denied'); return; }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      // Add to local state and rebuild timeline
+      const newCareLogs = [data, ...careLogs];
+      setCareLogs(newCareLogs);
+      setTimelineEntries(buildTimeline(animal, records, newCareLogs));
+      setCareForm({ date: new Date().toISOString().split('T')[0], type: 'feeding', value: '', notes: '' });
+      setShowCareForm(false);
+    } catch (err) {
+      setCareError(err.message);
+    } finally {
+      setCareSaving(false);
+    }
   }
 
   if (loading) return <p className="text-gray-500">Loading...</p>;
@@ -204,17 +241,18 @@ export default function AnimalDetail() {
         )}
       </div>
 
-      {/* Medical Records */}
+      {/* Care History Timeline */}
       <section>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900">Medical Records</h3>
-          {canAddMedical && (
-            <button onClick={() => setShowMedForm(!showMedForm)} className="text-sm px-3 py-1.5 bg-green-700 text-white rounded-md hover:bg-green-800">
-              {showMedForm ? 'Cancel' : '+ Add Record'}
-            </button>
-          )}
-        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Care History</h3>
 
+        {/* Add Medical Record button — only for vet/admin; hidden while med form open */}
+        {canAddMedical && !showMedForm && (
+          <button onClick={() => setShowMedForm(true)} className="w-full text-sm px-3 py-2 bg-purple-700 text-white rounded-md hover:bg-purple-800 mb-2">
+            + Add Medical Record
+          </button>
+        )}
+
+        {/* Medical record inline form */}
         {showMedForm && (
           <form onSubmit={addMedRecord} className="bg-white rounded-lg shadow p-4 mb-4 space-y-3">
             <div className="grid grid-cols-2 gap-3">
@@ -239,33 +277,161 @@ export default function AnimalDetail() {
                 <input type="date" value={medForm.followUpDate} onChange={(e) => setMedForm((f) => ({ ...f, followUpDate: e.target.value }))} className={inputCls} />
               </div>
             </div>
-            <button type="submit" disabled={medSaving} className="bg-green-700 text-white px-4 py-2 rounded-md text-sm hover:bg-green-800 disabled:opacity-50">
-              {medSaving ? 'Saving...' : 'Save Record'}
-            </button>
+            <div className="flex gap-2">
+              <button type="submit" disabled={medSaving} className="bg-purple-700 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-800 disabled:opacity-50">
+                {medSaving ? 'Saving...' : 'Save Record'}
+              </button>
+              <button type="button" onClick={() => setShowMedForm(false)} className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                Cancel
+              </button>
+            </div>
           </form>
         )}
 
-        <div className="space-y-3">
-          {records.length === 0 && <p className="text-gray-400 text-sm">No medical records yet.</p>}
-          {records.map((r) => (
-            <div key={r._id} className="bg-white rounded-lg shadow p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{r.description}</p>
-                  {r.treatment && <p className="text-sm text-gray-500 mt-0.5">Treatment: {r.treatment}</p>}
-                  {r.vet && <p className="text-sm text-gray-500">Vet: {r.vet}</p>}
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(r.date || r.createdAt).toLocaleDateString()}
-                    {r.followUpDate && ` · Follow-up: ${new Date(r.followUpDate).toLocaleDateString()}`}
-                  </p>
-                </div>
-                {canAddMedical && (
-                  <button onClick={() => deleteMedRecord(r._id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
+        {/* Sticky add button — only for staff/vet/admin; hidden while form open (per D-08, D-09) */}
+        {canWrite && !showCareForm && (
+          <button
+            onClick={() => setShowCareForm(true)}
+            className="w-full text-sm px-3 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 mb-4"
+          >
+            + Add Care Log
+          </button>
+        )}
+
+        {/* Inline form — appears between button and timeline when open (per D-11) */}
+        {showCareForm && (
+          <form onSubmit={addCareLog} className="bg-white rounded-lg shadow p-4 mb-4 space-y-3">
+            {careError && <p className="text-red-600 text-sm">{careError}</p>}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Date *</label>
+                <input
+                  type="date"
+                  required
+                  value={careForm.date}
+                  onChange={(e) => setCareForm((f) => ({ ...f, date: e.target.value }))}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Type *</label>
+                <select
+                  required
+                  value={careForm.type}
+                  onChange={(e) => setCareForm((f) => ({ ...f, type: e.target.value, value: '', notes: '' }))}
+                  className={inputCls}
+                >
+                  <option value="feeding">Feeding</option>
+                  <option value="weight">Weight</option>
+                  <option value="observation">Observation</option>
+                </select>
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  {careForm.type === 'weight' ? 'Value *' : 'Notes *'}
+                </label>
+                {careForm.type === 'weight' ? (
+                  <input
+                    required
+                    placeholder="e.g. 450g"
+                    value={careForm.value}
+                    onChange={(e) => setCareForm((f) => ({ ...f, value: e.target.value }))}
+                    className={inputCls}
+                  />
+                ) : (
+                  <textarea
+                    required
+                    rows={2}
+                    placeholder={careForm.type === 'feeding' ? 'e.g. 5ml formula, fed well' : 'Describe what you observed'}
+                    value={careForm.notes}
+                    onChange={(e) => setCareForm((f) => ({ ...f, notes: e.target.value }))}
+                    className={inputCls}
+                  />
                 )}
               </div>
             </div>
-          ))}
-        </div>
+            <div className="flex gap-2">
+              <button type="submit" disabled={careSaving} className="bg-green-700 text-white px-4 py-2 rounded-md text-sm hover:bg-green-800 disabled:opacity-50">
+                {careSaving ? 'Saving...' : 'Save'}
+              </button>
+              <button type="button" onClick={() => { setShowCareForm(false); setCareError(null); }} className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Timeline — day-grouped, oldest first (per D-01, D-05) */}
+        {timelineEntries.length === 0 ? (
+          <p className="text-gray-400 text-sm">No care history recorded yet.</p>
+        ) : (
+          <div className="space-y-6">
+            {groupByDay(timelineEntries).map((day) => (
+              <div key={day.date.toISOString()}>
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  {day.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                </h4>
+                <div className="space-y-2">
+                  {day.items.map((entry) => {
+                    if (entry.type === 'intake') {
+                      return (
+                        <div key="intake" className="flex items-center gap-2 text-sm text-gray-500 py-1">
+                          <span className="text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Intake</span>
+                          <span>Animal arrived at rescue center</span>
+                        </div>
+                      );
+                    }
+                    if (entry._timelineType === 'medical') {
+                      return (
+                        <div key={entry._id} className="bg-white rounded-lg shadow p-4">
+                          <div className="flex items-start justify-between">
+                            <span className="text-xs font-medium bg-purple-100 text-purple-700 px-2 py-0.5 rounded">Medical</span>
+                            {canAddMedical && (
+                              <button onClick={() => deleteMedRecord(entry._id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
+                            )}
+                          </div>
+                          <p className="text-sm font-medium text-gray-900 mt-2">{entry.description}</p>
+                          {entry.treatment && <p className="text-sm text-gray-500 mt-0.5">Treatment: {entry.treatment}</p>}
+                          {entry.vet && <p className="text-sm text-gray-500">Vet: {entry.vet}</p>}
+                          {entry.followUpDate && (
+                            <p className="text-xs text-gray-400 mt-1">Follow-up: {new Date(entry.followUpDate).toLocaleDateString()}</p>
+                          )}
+                        </div>
+                      );
+                    }
+                    if (entry._timelineType === 'carelog') {
+                      const isExpanded = !!expanded[entry._id];
+                      const typeLabel = entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
+                      const preview = entry.value || (entry.notes ? entry.notes.substring(0, 60) : '—');
+                      return (
+                        <div
+                          key={entry._id}
+                          className="bg-gray-50 rounded-lg p-3 cursor-pointer hover:bg-gray-100"
+                          onClick={() => setExpanded((e) => ({ ...e, [entry._id]: !isExpanded }))}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded">{typeLabel}</span>
+                            <span className="text-sm text-gray-800 flex-1 truncate">{preview}</span>
+                            <span className="text-xs text-gray-400">{isExpanded ? '▼' : '▶'}</span>
+                          </div>
+                          {isExpanded && (
+                            <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-gray-600 space-y-1">
+                              {entry.notes && <p><span className="font-medium">Notes:</span> {entry.notes}</p>}
+                              {entry.value && <p><span className="font-medium">Value:</span> {entry.value}</p>}
+                              <p><span className="font-medium">Logged by:</span> {entry.createdBy?.email ?? 'Unknown'}</p>
+                              <p><span className="font-medium">Submitted:</span> {new Date(entry.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
