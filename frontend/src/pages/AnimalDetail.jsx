@@ -3,6 +3,34 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Toast, useToast } from '../components/Toast';
 
+function buildTimeline(animal, medRecords, careLogs) {
+  const intakeEvent = {
+    _id: 'intake',
+    type: 'intake',
+    date: animal.intakeDate,
+  };
+  const allEvents = [
+    intakeEvent,
+    ...medRecords.map((m) => ({ ...m, _timelineType: 'medical' })),
+    ...careLogs.map((c) => ({ ...c, _timelineType: 'carelog' })),
+  ];
+  // Sort ascending (oldest first per D-05)
+  allEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+  return allEvents;
+}
+
+function groupByDay(entries) {
+  const groups = {};
+  entries.forEach((entry) => {
+    const dateKey = new Date(entry.date).toISOString().split('T')[0];
+    if (!groups[dateKey]) groups[dateKey] = [];
+    groups[dateKey].push(entry);
+  });
+  return Object.entries(groups)
+    .map(([dateStr, items]) => ({ date: new Date(dateStr + 'T00:00:00'), items }))
+    .sort((a, b) => a.date - b.date);
+}
+
 const STATUS_OPTIONS = [
   { value: 'in-center', label: 'In the center' },
   { value: 'released', label: 'Released' },
@@ -31,15 +59,21 @@ export default function AnimalDetail() {
   const [medSaving, setMedSaving] = useState(false);
   const [showMedForm, setShowMedForm] = useState(false);
 
+  const [careLogs, setCareLogs] = useState([]);
+  const [timelineEntries, setTimelineEntries] = useState([]);
+
   useEffect(() => {
     Promise.all([
       fetch(`/api/animals/${id}`).then((r) => r.json()),
       fetch(`/api/animals/${id}/medical`).then((r) => r.json()),
+      fetch(`/api/animals/${id}/carelogs`).then((r) => r.json()),
     ])
-      .then(([a, m]) => {
+      .then(([a, m, c]) => {
         setAnimal(a);
         setEditForm({ name: a.name, species: a.species, status: a.status, notes: a.notes || '', intakeDate: a.intakeDate?.split('T')[0] });
         setRecords(m);
+        setCareLogs(c);
+        setTimelineEntries(buildTimeline(a, m, c));
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
