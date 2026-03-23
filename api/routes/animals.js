@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const Animal = require('../models/Animal');
 const MedicalRecord = require('../models/MedicalRecord');
+const CareLog = require('../models/CareLog');
 const requireRole = require('../middleware/authorize');
 
 // GET /api/animals
@@ -80,6 +81,33 @@ router.post('/:id/medical', requireRole('vet', 'admin'), async (req, res) => {
   try {
     const record = await MedicalRecord.create({ ...req.body, animal: req.params.id });
     res.status(201).json(record);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// GET /api/animals/:id/carelogs
+router.get('/:id/carelogs', async (req, res) => {
+  try {
+    const logs = await CareLog.find({ animal: req.params.id })
+      .sort({ date: -1 })
+      .populate('createdBy', 'email role');
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/animals/:id/carelogs
+router.post('/:id/carelogs', requireRole('staff', 'vet', 'admin'), async (req, res) => {
+  try {
+    const log = await CareLog.create({
+      ...req.body,
+      animal: req.params.id,
+      createdBy: req.user._id,
+    });
+    const populated = await CareLog.findById(log._id).populate('createdBy', 'email role');
+    res.status(201).json(populated);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
