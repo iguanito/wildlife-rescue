@@ -81,7 +81,7 @@ Plans:
 - [x] 02-01-PLAN.md — CareLog model + nested API routes: schema with compound index, GET/POST /carelogs endpoints in animals router
 - [x] 02-02-PLAN.md — Wave 0 test stubs: care-log.test.js (CARE-01/02/03) and animal-detail.test.js (DETAIL-01/02)
 - [ ] 02-03-PLAN.md — AnimalDetail frontend refactor: unified timeline merge, day grouping, compact/expand care logs, inline add-care-log form + human verification
-- [ ] 02-04-PLAN.md — Integration tests: fill in stub implementations for all 5 Phase 2 requirement tests
+- [x] 02-04-PLAN.md — Integration tests: fill in stub implementations for all 5 Phase 2 requirement tests
 
 ---
 
@@ -198,7 +198,7 @@ Plans:
 | Phase | Goal | Requirements | Success Criteria | Status |
 |-------|------|--------------|------------------|--------|
 | 1 | Auth & Authorization | 3/4 | In Progress|  |
-| 2 | Detail & Care Foundation | 1/4 | In Progress|  |
+| 2 | Detail & Care Foundation | 3/4 | In Progress|  |
 | 3 | Daily Dashboard | 3 | 6 | Not started |
 | 4 | Outcome & Status | 3 | 8 | Not started |
 | 5 | User Management | 3 | 7 | Not started |
