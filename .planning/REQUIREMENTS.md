@@ -28,14 +28,14 @@
 
 ### Daily Care Logs
 
-- [ ] **CARE-01**: Staff can add a care log entry to an animal (type: feeding, weight, observation)
-- [ ] **CARE-02**: Care logs include date, type, value/notes, and the user who created it
-- [ ] **CARE-03**: Staff can view all care logs for a given animal
+- [x] **CARE-01**: Staff can add a care log entry to an animal (type: feeding, weight, observation)
+- [x] **CARE-02**: Care logs include date, type, value/notes, and the user who created it
+- [x] **CARE-03**: Staff can view all care logs for a given animal
 
 ### Animal Detail & Timeline
 
-- [ ] **DETAIL-01**: User can view an animal's full history in chronological order: intake info, care logs, medical records, and outcome
-- [ ] **DETAIL-02**: Animal detail page shows current status and all key fields from intake
+- [x] **DETAIL-01**: User can view an animal's full history in chronological order: intake info, care logs, medical records, and outcome
+- [x] **DETAIL-02**: Animal detail page shows current status and all key fields from intake
 
 ### Outcome Recording
 
@@ -99,11 +99,11 @@
 | USER-01 | Phase 5 | Pending |
 | USER-02 | Phase 5 | Pending |
 | USER-03 | Phase 5 | Pending |
-| CARE-01 | Phase 2 | Pending |
-| CARE-02 | Phase 2 | Pending |
-| CARE-03 | Phase 2 | Pending |
-| DETAIL-01 | Phase 2 | Pending |
-| DETAIL-02 | Phase 2 | Pending |
+| CARE-01 | Phase 2 | Complete |
+| CARE-02 | Phase 2 | Complete |
+| CARE-03 | Phase 2 | Complete |
+| DETAIL-01 | Phase 2 | Complete |
+| DETAIL-02 | Phase 2 | Complete |
 | OUTCOME-01 | Phase 4 | Pending |
 | OUTCOME-02 | Phase 4 | Pending |
 | OUTCOME-03 | Phase 4 | Pending |
