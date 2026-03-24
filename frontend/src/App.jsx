@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import AnimalList from './pages/AnimalList';
 import AnimalCreate from './pages/AnimalCreate';
 import AnimalDetail from './pages/AnimalDetail';
+import Dashboard from './pages/Dashboard';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
                 <Route path="/animals" element={<AnimalList />} />
                 <Route path="/animals/new" element={<AnimalCreate />} />
                 <Route path="/animals/:id" element={<AnimalDetail />} />
+                <Route path="/dashboard" element={<Dashboard />} />
               </Routes>
             </Layout>
           </ProtectedRoute>

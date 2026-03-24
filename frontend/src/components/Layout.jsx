@@ -10,9 +10,8 @@ export default function Layout({ children }) {
     navigate('/login', { replace: true });
   };
 
-  // Phase 1: only Animals in nav (per D-06)
-  // Dashboard, Users, Reports will be added in phases 3, 5, 6 respectively
   const navItems = [
+    { to: '/dashboard', label: 'Dashboard' },
     { to: '/animals', label: 'Animals' },
   ];
 
