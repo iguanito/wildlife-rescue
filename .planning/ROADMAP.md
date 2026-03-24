@@ -107,7 +107,12 @@ Plans:
 - Dashboard includes quick-add form for each missing care type (UX convenience)
 - Status counts widget fetches from separate aggregation (all animals grouped by status, excludes soft-deleted)
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Wave 0 test stubs: dashboard.test.js with 6 failing stubs for DASH-01, DASH-02, DASH-03
+- [ ] 03-02-PLAN.md — Backend: MedicalRecord followUpCompleted field, dashboard routes (GET /today, GET /status), PATCH /api/medical/:id
+- [ ] 03-03-PLAN.md — Frontend: Dashboard.jsx two-panel page, App.jsx route, Layout.jsx nav + human verification
 
 ---
 
