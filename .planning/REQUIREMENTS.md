@@ -45,9 +45,9 @@
 
 ### Dashboard
 
-- [ ] **DASH-01**: Staff sees a "today's tasks" view showing which animals need care entries today
-- [ ] **DASH-02**: Dashboard shows count of animals by status (in care, ready for release, released, etc.)
-- [ ] **DASH-03**: Clicking an animal in the dashboard navigates to its detail page
+- [x] **DASH-01**: Staff sees a "today's tasks" view showing which animals need care entries today
+- [x] **DASH-02**: Dashboard shows count of animals by status (in care, ready for release, released, etc.)
+- [x] **DASH-03**: Clicking an animal in the dashboard navigates to its detail page
 
 ### Reporting & Statistics
 
@@ -107,9 +107,9 @@
 | OUTCOME-01 | Phase 4 | Pending |
 | OUTCOME-02 | Phase 4 | Pending |
 | OUTCOME-03 | Phase 4 | Pending |
-| DASH-01 | Phase 3 | Pending |
-| DASH-02 | Phase 3 | Pending |
-| DASH-03 | Phase 3 | Pending |
+| DASH-01 | Phase 3 | Complete |
+| DASH-02 | Phase 3 | Complete |
+| DASH-03 | Phase 3 | Complete |
 | REPORT-01 | Phase 6 | Pending |
 | REPORT-02 | Phase 6 | Pending |
 
