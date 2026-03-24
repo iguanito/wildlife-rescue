@@ -69,7 +69,9 @@ router.delete('/:id', requireRole('admin'), async (req, res) => {
 // GET /api/animals/:id/medical
 router.get('/:id/medical', async (req, res) => {
   try {
-    const records = await MedicalRecord.find({ animal: req.params.id }).sort({ date: -1 });
+    const records = await MedicalRecord.find({ animal: req.params.id })
+      .sort({ date: -1 })
+      .populate('createdBy', 'email role');
     res.json(records);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -79,8 +81,9 @@ router.get('/:id/medical', async (req, res) => {
 // POST /api/animals/:id/medical
 router.post('/:id/medical', requireRole('vet', 'admin'), async (req, res) => {
   try {
-    const record = await MedicalRecord.create({ ...req.body, animal: req.params.id });
-    res.status(201).json(record);
+    const record = await MedicalRecord.create({ ...req.body, animal: req.params.id, createdBy: req.user._id });
+    const populated = await MedicalRecord.findById(record._id).populate('createdBy', 'email role');
+    res.status(201).json(populated);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -108,6 +111,46 @@ router.post('/:id/carelogs', requireRole('staff', 'vet', 'admin'), async (req, r
     });
     const populated = await CareLog.findById(log._id).populate('createdBy', 'email role');
     res.status(201).json(populated);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/animals/:id/carelogs/:logId — vet/admin only
+router.delete('/:id/carelogs/:logId', requireRole('vet', 'admin'), async (req, res) => {
+  try {
+    const log = await CareLog.findOneAndDelete({ _id: req.params.logId, animal: req.params.id });
+    if (!log) return res.status(404).json({ error: 'Care log not found' });
+    res.json({ message: 'Care log deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/animals/:id/carelogs/:logId — vet/admin: any entry; staff: own entry within 24h
+router.put('/:id/carelogs/:logId', requireRole('staff', 'vet', 'admin'), async (req, res) => {
+  try {
+    const log = await CareLog.findOne({ _id: req.params.logId, animal: req.params.id });
+    if (!log) return res.status(404).json({ error: 'Care log not found' });
+
+    const { role, _id: userId } = req.user;
+    if (role === 'staff') {
+      if (log.createdBy?.toString() !== userId.toString()) {
+        return res.status(403).json({ error: 'You can only edit your own entries' });
+      }
+      const ageMs = Date.now() - new Date(log.createdAt).getTime();
+      if (ageMs > 24 * 60 * 60 * 1000) {
+        return res.status(403).json({ error: 'Staff can only edit entries within 24 hours of creation' });
+      }
+    }
+
+    const { date, type, value, notes } = req.body;
+    const updated = await CareLog.findByIdAndUpdate(
+      req.params.logId,
+      { date, type, value, notes },
+      { new: true, runValidators: true }
+    ).populate('createdBy', 'email role');
+    res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

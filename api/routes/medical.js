@@ -17,15 +17,27 @@ router.patch('/:id', requireRole('staff', 'vet', 'admin'), async (req, res) => {
   }
 });
 
-// PUT /api/medical/:id
-router.put('/:id', requireRole('vet', 'admin'), async (req, res) => {
+// PUT /api/medical/:id — vet/admin: any record; staff: own record within 24h
+router.put('/:id', requireRole('staff', 'vet', 'admin'), async (req, res) => {
   try {
-    const record = await MedicalRecord.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const record = await MedicalRecord.findById(req.params.id);
     if (!record) return res.status(404).json({ error: 'Record not found' });
-    res.json(record);
+
+    const { role, _id: userId } = req.user;
+    if (role === 'staff') {
+      if (record.createdBy?.toString() !== userId.toString()) {
+        return res.status(403).json({ error: 'You can only edit your own records' });
+      }
+      const ageMs = Date.now() - new Date(record.createdAt).getTime();
+      if (ageMs > 24 * 60 * 60 * 1000) {
+        return res.status(403).json({ error: 'Staff can only edit records within 24 hours of creation' });
+      }
+    }
+
+    const updated = await MedicalRecord.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, runValidators: true,
+    }).populate('createdBy', 'email role');
+    res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

@@ -6,8 +6,8 @@ const Animal = require('../models/Animal');
 // Visible to all authenticated roles; no requireRole needed (dashboard GET is read-only)
 router.get('/today', async (req, res) => {
   try {
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
+    const dateStr = req.query.date || new Date().toISOString().slice(0, 10);
+    const today = new Date(dateStr + 'T00:00:00.000Z');
     const tomorrow = new Date(today);
     tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
@@ -15,7 +15,7 @@ router.get('/today', async (req, res) => {
       {
         $match: {
           followUpDate: { $gte: today, $lt: tomorrow },
-          followUpCompleted: false
+          followUpCompleted: { $ne: true }
         }
       },
       {
@@ -32,6 +32,7 @@ router.get('/today', async (req, res) => {
         $project: {
           _id: 1,
           followUpDate: 1,
+          followUpReason: 1,
           description: 1,
           'animalData._id': 1,
           'animalData.givenName': 1,

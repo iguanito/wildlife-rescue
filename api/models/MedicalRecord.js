@@ -7,6 +7,7 @@ const medicalRecordSchema = new mongoose.Schema({
   treatment: { type: String, trim: true },
   vet: { type: String, trim: true },
   followUpDate: { type: Date },
+  followUpReason: { type: String, trim: true },
   followUpCompleted: { type: Boolean, default: false },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 }, { timestamps: true });

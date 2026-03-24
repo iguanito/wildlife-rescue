@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const STATUS_COLORS = {
@@ -16,11 +16,12 @@ const STATUS_LABELS = {
 
 export default function AnimalList() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [animals, setAnimals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? 'in-center');
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -93,10 +94,10 @@ export default function AnimalList() {
             <tbody className="divide-y divide-gray-200">
               {animals.map((a) => (
                 <tr key={a._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{a.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{a.species}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{a.givenName}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{a.commonName}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {new Date(a.intakeDate).toLocaleDateString()}
+                    {new Date(a.intakeDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}
                   </td>
                   <td className="px-6 py-4">
                     <span

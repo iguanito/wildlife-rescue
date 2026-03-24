@@ -18,7 +18,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/dashboard/today').then(r => r.json()),
+      fetch(`/api/dashboard/today?date=${new Date().toLocaleDateString('en-CA')}`).then(r => r.json()),
       fetch('/api/dashboard/status').then(r => r.json()),
     ])
       .then(([tasks, counts]) => {
@@ -82,6 +82,7 @@ export default function Dashboard() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Animal</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Species</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Follow-up Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
                   <th className="px-6 py-3" />
                 </tr>
               </thead>
@@ -108,7 +109,10 @@ export default function Dashboard() {
                       {task.animalData.commonName}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {new Date(task.followUpDate).toLocaleDateString()}
+                      {new Date(task.followUpDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {task.followUpReason || <span className="text-gray-400">—</span>}
                     </td>
                     <td className="px-6 py-4 text-sm text-right">
                       {/* D-C3: always visible inline; hidden for volunteers (per D-A3 + Phase 1 D-11) */}

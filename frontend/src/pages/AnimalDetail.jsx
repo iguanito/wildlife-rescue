@@ -14,8 +14,7 @@ function buildTimeline(animal, medRecords, careLogs) {
     ...medRecords.map((m) => ({ ...m, _timelineType: 'medical' })),
     ...careLogs.map((c) => ({ ...c, _timelineType: 'carelog' })),
   ];
-  // Sort ascending (oldest first per D-05)
-  allEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+  allEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
   return allEvents;
 }
 
@@ -28,7 +27,7 @@ function groupByDay(entries) {
   });
   return Object.entries(groups)
     .map(([dateStr, items]) => ({ date: new Date(dateStr + 'T00:00:00'), items }))
-    .sort((a, b) => a.date - b.date);
+    .sort((a, b) => b.date - a.date);
 }
 
 const STATUS_OPTIONS = [
@@ -36,6 +35,16 @@ const STATUS_OPTIONS = [
   { value: 'released', label: 'Released' },
   { value: 'deceased', label: 'Deceased' },
 ];
+const STATUS_COLORS = {
+  'in-center': 'bg-blue-100 text-blue-800',
+  released: 'bg-teal-100 text-teal-800',
+  deceased: 'bg-gray-100 text-gray-600',
+};
+const STATUS_LABELS = {
+  'in-center': 'In the center',
+  released: 'Released',
+  deceased: 'Deceased',
+};
 const inputCls = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500';
 
 export default function AnimalDetail() {
@@ -55,19 +64,24 @@ export default function AnimalDetail() {
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
 
-  const [medForm, setMedForm] = useState({ description: '', treatment: '', vet: '', date: '', followUpDate: '' });
+  const [medForm, setMedForm] = useState({ description: '', treatment: '', vet: '', date: new Date().toLocaleDateString('en-CA'), followUpDate: '', followUpReason: '' });
   const [medSaving, setMedSaving] = useState(false);
   const [showMedForm, setShowMedForm] = useState(false);
+  const [showMedFollowUp, setShowMedFollowUp] = useState(false);
+  const [showMedEditFollowUp, setShowMedEditFollowUp] = useState(false);
 
   const [careLogs, setCareLogs] = useState([]);
   const [timelineEntries, setTimelineEntries] = useState([]);
+
+  const [editingMedId, setEditingMedId] = useState(null);
+  const [medEditForm, setMedEditForm] = useState({});
+  const [editingCareId, setEditingCareId] = useState(null);
+  const [careEditForm, setCareEditForm] = useState({});
 
   const [showCareForm, setShowCareForm] = useState(false);
   const [careForm, setCareForm] = useState({ date: new Date().toISOString().split('T')[0], type: 'feeding', value: '', notes: '' });
   const [careSaving, setCareSaving] = useState(false);
   const [careError, setCareError] = useState(null);
-
-  const [expanded, setExpanded] = useState({});
 
   useEffect(() => {
     Promise.all([
@@ -77,7 +91,7 @@ export default function AnimalDetail() {
     ])
       .then(([a, m, c]) => {
         setAnimal(a);
-        setEditForm({ name: a.name, species: a.species, status: a.status, notes: a.notes || '', intakeDate: a.intakeDate?.split('T')[0] });
+        setEditForm({ givenName: a.givenName, commonName: a.commonName, status: a.status, notes: a.notes || '', intakeDate: a.intakeDate?.split('T')[0] });
         setRecords(m);
         setCareLogs(c);
         setTimelineEntries(buildTimeline(a, m, c));
@@ -100,7 +114,7 @@ export default function AnimalDetail() {
   }
 
   async function deleteAnimal() {
-    if (!confirm(`Delete ${animal.name}? This cannot be undone.`)) return;
+    if (!confirm(`Delete ${animal.givenName}? This cannot be undone.`)) return;
     const res = await fetch(`/api/animals/${id}`, { method: 'DELETE' });
     if (res.status === 403) { showToast('Permission denied'); return; }
     navigate('/animals');
@@ -121,11 +135,73 @@ export default function AnimalDetail() {
       const newRecords = [data, ...records];
       setRecords(newRecords);
       setTimelineEntries(buildTimeline(animal, newRecords, careLogs));
-      setMedForm({ description: '', treatment: '', vet: '', date: '', followUpDate: '' });
+      setMedForm({ description: '', treatment: '', vet: '', date: new Date().toLocaleDateString('en-CA'), followUpDate: '', followUpReason: '' });
+      setShowMedFollowUp(false);
       setShowMedForm(false);
     } finally {
       setMedSaving(false);
     }
+  }
+
+  function canEditMedRecord(entry) {
+    if (!user) return false;
+    if (['vet', 'admin'].includes(user.role)) return true;
+    if (user.role === 'staff') {
+      const isOwn = entry.createdBy?._id === user._id || entry.createdBy === user._id;
+      const ageMs = Date.now() - new Date(entry.createdAt).getTime();
+      return isOwn && ageMs <= 24 * 60 * 60 * 1000;
+    }
+    return false;
+  }
+
+  async function saveMedRecord(recId) {
+    const res = await fetch(`/api/medical/${recId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(medEditForm),
+    });
+    if (res.status === 403) { showToast('Permission denied'); return; }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    const newRecords = records.map((r) => r._id === recId ? data : r);
+    setRecords(newRecords);
+    setTimelineEntries(buildTimeline(animal, newRecords, careLogs));
+    setEditingMedId(null);
+  }
+
+  function canEditCareLog(entry) {
+    if (!user) return false;
+    if (['vet', 'admin'].includes(user.role)) return true;
+    if (user.role === 'staff') {
+      const isOwn = entry.createdBy?._id === user._id || entry.createdBy === user._id;
+      const ageMs = Date.now() - new Date(entry.createdAt).getTime();
+      return isOwn && ageMs <= 24 * 60 * 60 * 1000;
+    }
+    return false;
+  }
+
+  async function deleteCareLog(logId) {
+    if (!confirm('Delete this care log entry?')) return;
+    const res = await fetch(`/api/animals/${id}/carelogs/${logId}`, { method: 'DELETE' });
+    if (res.status === 403) { showToast('Permission denied'); return; }
+    const newCareLogs = careLogs.filter((c) => c._id !== logId);
+    setCareLogs(newCareLogs);
+    setTimelineEntries(buildTimeline(animal, records, newCareLogs));
+  }
+
+  async function saveCareLog(logId) {
+    const res = await fetch(`/api/animals/${id}/carelogs/${logId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(careEditForm),
+    });
+    if (res.status === 403) { showToast('Permission denied'); return; }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    const newCareLogs = careLogs.map((c) => c._id === logId ? data : c);
+    setCareLogs(newCareLogs);
+    setTimelineEntries(buildTimeline(animal, records, newCareLogs));
+    setEditingCareId(null);
   }
 
   async function deleteMedRecord(recId) {
@@ -174,8 +250,8 @@ export default function AnimalDetail() {
       <div className="flex items-start justify-between">
         <div>
           <Link to="/animals" className="text-gray-400 hover:text-gray-600 text-sm">← Animals</Link>
-          <h2 className="text-2xl font-bold text-gray-900 mt-1">{animal.name}</h2>
-          <p className="text-gray-500 text-sm">{animal.species}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mt-1">{animal.givenName}</h2>
+          <p className="text-gray-500 text-sm">{animal.commonName}</p>
         </div>
         {canWrite && (
           <div className="flex gap-2">
@@ -196,11 +272,11 @@ export default function AnimalDetail() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Name</label>
-                <input value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} className={inputCls} />
+                <input value={editForm.givenName} onChange={(e) => setEditForm((f) => ({ ...f, givenName: e.target.value }))} className={inputCls} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Species</label>
-                <input value={editForm.species} onChange={(e) => setEditForm((f) => ({ ...f, species: e.target.value }))} className={inputCls} />
+                <input value={editForm.commonName} onChange={(e) => setEditForm((f) => ({ ...f, commonName: e.target.value }))} className={inputCls} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Intake Date</label>
@@ -222,15 +298,22 @@ export default function AnimalDetail() {
         ) : (
           <dl className="grid grid-cols-2 gap-4">
             {[
-              ['Species', animal.species],
-              ['Status', animal.status],
-              ['Intake Date', new Date(animal.intakeDate).toLocaleDateString()],
+              ['Species', animal.commonName],
+              ['Intake Date', new Date(animal.intakeDate).toLocaleDateString(undefined, { timeZone: 'UTC' })],
             ].map(([label, value]) => (
               <div key={label}>
                 <dt className="text-xs font-medium text-gray-500">{label}</dt>
                 <dd className="mt-0.5 text-sm text-gray-900">{value}</dd>
               </div>
             ))}
+            <div>
+              <dt className="text-xs font-medium text-gray-500">Status</dt>
+              <dd className="mt-0.5">
+                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[animal.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {STATUS_LABELS[animal.status] ?? animal.status}
+                </span>
+              </dd>
+            </div>
             {animal.notes && (
               <div className="col-span-2">
                 <dt className="text-xs font-medium text-gray-500">Notes</dt>
@@ -272,16 +355,35 @@ export default function AnimalDetail() {
                 <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
                 <input type="date" value={medForm.date} onChange={(e) => setMedForm((f) => ({ ...f, date: e.target.value }))} className={inputCls} />
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Follow-up Date</label>
-                <input type="date" value={medForm.followUpDate} onChange={(e) => setMedForm((f) => ({ ...f, followUpDate: e.target.value }))} className={inputCls} />
-              </div>
+              {showMedFollowUp ? (
+                <div className="col-span-2 grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Follow-up Date *</label>
+                    <input required type="date" value={medForm.followUpDate} onChange={(e) => setMedForm((f) => ({ ...f, followUpDate: e.target.value }))} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Follow-up Reason *</label>
+                    <input required value={medForm.followUpReason} onChange={(e) => setMedForm((f) => ({ ...f, followUpReason: e.target.value }))} className={inputCls} placeholder="e.g. Check wound healing" />
+                  </div>
+                  <div className="col-span-2">
+                    <button type="button" onClick={() => { setShowMedFollowUp(false); setMedForm((f) => ({ ...f, followUpDate: '', followUpReason: '' })); }} className="text-xs text-red-500 hover:text-red-700">
+                      − Remove follow-up
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="col-span-2">
+                  <button type="button" onClick={() => setShowMedFollowUp(true)} className="text-xs text-purple-600 hover:text-purple-800 font-medium">
+                    + Add follow-up
+                  </button>
+                </div>
+              )}
             </div>
             <div className="flex gap-2">
               <button type="submit" disabled={medSaving} className="bg-purple-700 text-white px-4 py-2 rounded-md text-sm hover:bg-purple-800 disabled:opacity-50">
                 {medSaving ? 'Saving...' : 'Save Record'}
               </button>
-              <button type="button" onClick={() => setShowMedForm(false)} className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+              <button type="button" onClick={() => { setShowMedForm(false); setShowMedFollowUp(false); setMedForm((f) => ({ ...f, followUpDate: '', followUpReason: '' })); }} className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
                 Cancel
               </button>
             </div>
@@ -382,45 +484,154 @@ export default function AnimalDetail() {
                       );
                     }
                     if (entry._timelineType === 'medical') {
+                      const isEditing = editingMedId === entry._id;
                       return (
                         <div key={entry._id} className="bg-white rounded-lg shadow p-4">
-                          <div className="flex items-start justify-between">
+                          <div className="flex items-center justify-between">
                             <span className="text-xs font-medium bg-purple-100 text-purple-700 px-2 py-0.5 rounded">Medical</span>
-                            {canAddMedical && (
-                              <button onClick={() => deleteMedRecord(entry._id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
-                            )}
+                            <div className="flex items-center gap-3">
+                              {entry.createdBy?.email && (
+                                <span className="text-xs text-gray-400">{entry.createdBy.email}</span>
+                              )}
+                              {!isEditing && (
+                                <>
+                                  {canEditMedRecord(entry) && (
+                                    <button
+                                      onClick={() => { setEditingMedId(entry._id); setShowMedEditFollowUp(!!entry.followUpDate); setMedEditForm({ description: entry.description, treatment: entry.treatment || '', vet: entry.vet || '', date: entry.date?.split('T')[0] || '', followUpDate: entry.followUpDate?.split('T')[0] || '', followUpReason: entry.followUpReason || '' }); }}
+                                      className="text-xs text-blue-500 hover:text-blue-700"
+                                    >Edit</button>
+                                  )}
+                                  {canAddMedical && (
+                                    <button onClick={() => deleteMedRecord(entry._id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-sm font-medium text-gray-900 mt-2">{entry.description}</p>
-                          {entry.treatment && <p className="text-sm text-gray-500 mt-0.5">Treatment: {entry.treatment}</p>}
-                          {entry.vet && <p className="text-sm text-gray-500">Vet: {entry.vet}</p>}
-                          {entry.followUpDate && (
-                            <p className="text-xs text-gray-400 mt-1">Follow-up: {new Date(entry.followUpDate).toLocaleDateString()}</p>
+                          {isEditing ? (
+                            <div className="mt-3 space-y-3">
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="col-span-2">
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">Description *</label>
+                                  <input required value={medEditForm.description} onChange={(e) => setMedEditForm((f) => ({ ...f, description: e.target.value }))} className={inputCls} />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">Treatment</label>
+                                  <input value={medEditForm.treatment} onChange={(e) => setMedEditForm((f) => ({ ...f, treatment: e.target.value }))} className={inputCls} />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">Vet</label>
+                                  <input value={medEditForm.vet} onChange={(e) => setMedEditForm((f) => ({ ...f, vet: e.target.value }))} className={inputCls} />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
+                                  <input type="date" value={medEditForm.date} onChange={(e) => setMedEditForm((f) => ({ ...f, date: e.target.value }))} className={inputCls} />
+                                </div>
+                                {showMedEditFollowUp ? (
+                                  <div className="col-span-2 grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-500 mb-1">Follow-up Date *</label>
+                                      <input required type="date" value={medEditForm.followUpDate} onChange={(e) => setMedEditForm((f) => ({ ...f, followUpDate: e.target.value }))} className={inputCls} />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-500 mb-1">Follow-up Reason *</label>
+                                      <input required value={medEditForm.followUpReason} onChange={(e) => setMedEditForm((f) => ({ ...f, followUpReason: e.target.value }))} className={inputCls} />
+                                    </div>
+                                    <div className="col-span-2">
+                                      <button type="button" onClick={() => { setShowMedEditFollowUp(false); setMedEditForm((f) => ({ ...f, followUpDate: '', followUpReason: '' })); }} className="text-xs text-red-500 hover:text-red-700">
+                                        − Remove follow-up
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="col-span-2">
+                                    <button type="button" onClick={() => setShowMedEditFollowUp(true)} className="text-xs text-purple-600 hover:text-purple-800 font-medium">
+                                      + Add follow-up
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                <button onClick={() => saveMedRecord(entry._id)} className="bg-purple-700 text-white px-3 py-1.5 rounded-md text-sm hover:bg-purple-800">Save</button>
+                                <button onClick={() => setEditingMedId(null)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="text-sm font-medium text-gray-900 mt-2">{entry.description}</p>
+                              {entry.treatment && <p className="text-sm text-gray-500 mt-0.5">Treatment: {entry.treatment}</p>}
+                              {entry.vet && <p className="text-sm text-gray-500">Vet: {entry.vet}</p>}
+                              {entry.followUpDate && (
+                                <p className="text-xs text-gray-400 mt-1">
+                                  Follow-up: {new Date(entry.followUpDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}
+                                  {entry.followUpReason && <span className="ml-1">— {entry.followUpReason}</span>}
+                                </p>
+                              )}
+                            </>
                           )}
                         </div>
                       );
                     }
                     if (entry._timelineType === 'carelog') {
-                      const isExpanded = !!expanded[entry._id];
                       const typeLabel = entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
-                      const preview = entry.value || (entry.notes ? entry.notes.substring(0, 60) : '—');
+                      const isCareEditing = editingCareId === entry._id;
                       return (
-                        <div
-                          key={entry._id}
-                          className="bg-gray-50 rounded-lg p-3 cursor-pointer hover:bg-gray-100"
-                          onClick={() => setExpanded((e) => ({ ...e, [entry._id]: !isExpanded }))}
-                        >
-                          <div className="flex items-center gap-2">
+                        <div key={entry._id} className="bg-white rounded-lg shadow p-4">
+                          <div className="flex items-center justify-between">
                             <span className="text-xs font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded">{typeLabel}</span>
-                            <span className="text-sm text-gray-800 flex-1 truncate">{preview}</span>
-                            <span className="text-xs text-gray-400">{isExpanded ? '▼' : '▶'}</span>
-                          </div>
-                          {isExpanded && (
-                            <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-gray-600 space-y-1">
-                              {entry.notes && <p><span className="font-medium">Notes:</span> {entry.notes}</p>}
-                              {entry.value && <p><span className="font-medium">Value:</span> {entry.value}</p>}
-                              <p><span className="font-medium">Logged by:</span> {entry.createdBy?.email ?? 'Unknown'}</p>
-                              <p><span className="font-medium">Submitted:</span> {new Date(entry.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                            <div className="flex items-center gap-3">
+                              {entry.createdBy?.email && (
+                                <span className="text-xs text-gray-400">{entry.createdBy.email}</span>
+                              )}
+                              {!isCareEditing && (
+                                <>
+                                  {canEditCareLog(entry) && (
+                                    <button
+                                      onClick={() => { setEditingCareId(entry._id); setCareEditForm({ date: entry.date?.split('T')[0] || '', type: entry.type, value: entry.value || '', notes: entry.notes || '' }); }}
+                                      className="text-xs text-blue-500 hover:text-blue-700"
+                                    >Edit</button>
+                                  )}
+                                  {user && ['vet', 'admin'].includes(user.role) && (
+                                    <button onClick={() => deleteCareLog(entry._id)} className="text-xs text-red-400 hover:text-red-600">Delete</button>
+                                  )}
+                                </>
+                              )}
                             </div>
+                          </div>
+                          {isCareEditing ? (
+                            <div className="mt-3 space-y-3">
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">Date *</label>
+                                  <input type="date" required value={careEditForm.date} onChange={(e) => setCareEditForm((f) => ({ ...f, date: e.target.value }))} className={inputCls} />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">Type *</label>
+                                  <select value={careEditForm.type} onChange={(e) => setCareEditForm((f) => ({ ...f, type: e.target.value, value: '', notes: '' }))} className={inputCls}>
+                                    <option value="feeding">Feeding</option>
+                                    <option value="weight">Weight</option>
+                                    <option value="observation">Observation</option>
+                                  </select>
+                                </div>
+                                <div className="col-span-2">
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">{careEditForm.type === 'weight' ? 'Value *' : 'Notes *'}</label>
+                                  {careEditForm.type === 'weight' ? (
+                                    <input required value={careEditForm.value} onChange={(e) => setCareEditForm((f) => ({ ...f, value: e.target.value }))} className={inputCls} />
+                                  ) : (
+                                    <textarea required rows={2} value={careEditForm.notes} onChange={(e) => setCareEditForm((f) => ({ ...f, notes: e.target.value }))} className={inputCls} />
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <button onClick={() => saveCareLog(entry._id)} className="bg-green-700 text-white px-3 py-1.5 rounded-md text-sm hover:bg-green-800">Save</button>
+                                <button onClick={() => setEditingCareId(null)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              {entry.value && <p className="text-sm font-medium text-gray-900 mt-2">{entry.value}</p>}
+                              {entry.notes && <p className="text-sm text-gray-500 mt-0.5">{entry.notes}</p>}
+                            </>
                           )}
                         </div>
                       );
