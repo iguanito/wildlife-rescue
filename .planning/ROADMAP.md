@@ -111,7 +111,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — Wave 0 test stubs: dashboard.test.js with 6 failing stubs for DASH-01, DASH-02, DASH-03
-- [ ] 03-02-PLAN.md — Backend: MedicalRecord followUpCompleted field, dashboard routes (GET /today, GET /status), PATCH /api/medical/:id
+- [x] 03-02-PLAN.md — Backend: MedicalRecord followUpCompleted field, dashboard routes (GET /today, GET /status), PATCH /api/medical/:id
 - [ ] 03-03-PLAN.md — Frontend: Dashboard.jsx two-panel page, App.jsx route, Layout.jsx nav + human verification
 
 ---
@@ -204,7 +204,7 @@ Plans:
 |-------|------|--------------|------------------|--------|
 | 1 | Auth & Authorization | 3/4 | In Progress|  |
 | 2 | Detail & Care Foundation | 3/4 | In Progress|  |
-| 3 | Daily Dashboard | 1/3 | In Progress|  |
+| 3 | Daily Dashboard | 2/3 | In Progress|  |
 | 4 | Outcome & Status | 3 | 8 | Not started |
 | 5 | User Management | 3 | 7 | Not started |
 | 6 | Reporting & Statistics | 2 | 6 | Not started |
