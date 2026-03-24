@@ -8,6 +8,7 @@ const authRouter = require('./routes/auth');
 const animalsRouter = require('./routes/animals');
 const medicalRouter = require('./routes/medical');
 const speciesRouter = require('./routes/species');
+const dashboardRouter = require('./routes/dashboard');
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use(authenticateToken);
 app.use('/api/animals', animalsRouter);
 app.use('/api/medical', medicalRouter);
 app.use('/api/species', speciesRouter);
+app.use('/api/dashboard', dashboardRouter);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', user: req.user }));
 
