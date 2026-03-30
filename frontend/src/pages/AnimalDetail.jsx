@@ -79,7 +79,7 @@ export default function AnimalDetail() {
   const [careEditForm, setCareEditForm] = useState({});
 
   const [showCareForm, setShowCareForm] = useState(false);
-  const [careForm, setCareForm] = useState({ date: new Date().toISOString().split('T')[0], type: 'feeding', value: '', notes: '' });
+  const [careForm, setCareForm] = useState({ date: new Date().toISOString().split('T')[0], feeding: '', weight: '', observation: '' });
   const [careSaving, setCareSaving] = useState(false);
   const [careError, setCareError] = useState(null);
 
@@ -230,7 +230,7 @@ export default function AnimalDetail() {
       const newCareLogs = [data, ...careLogs];
       setCareLogs(newCareLogs);
       setTimelineEntries(buildTimeline(animal, records, newCareLogs));
-      setCareForm({ date: new Date().toISOString().split('T')[0], type: 'feeding', value: '', notes: '' });
+      setCareForm({ date: new Date().toISOString().split('T')[0], feeding: '', weight: '', observation: '' });
       setShowCareForm(false);
     } catch (err) {
       setCareError(err.message);
@@ -415,41 +415,35 @@ export default function AnimalDetail() {
                   className={inputCls}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Type *</label>
-                <select
-                  required
-                  value={careForm.type}
-                  onChange={(e) => setCareForm((f) => ({ ...f, type: e.target.value, value: '', notes: '' }))}
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-gray-500 mb-1">Feeding</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. 5ml formula, fed well"
+                  value={careForm.feeding}
+                  onChange={(e) => setCareForm((f) => ({ ...f, feeding: e.target.value }))}
                   className={inputCls}
-                >
-                  <option value="feeding">Feeding</option>
-                  <option value="weight">Weight</option>
-                  <option value="observation">Observation</option>
-                </select>
+                />
               </div>
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  {careForm.type === 'weight' ? 'Value *' : 'Notes *'}
-                </label>
-                {careForm.type === 'weight' ? (
-                  <input
-                    required
-                    placeholder="e.g. 450g"
-                    value={careForm.value}
-                    onChange={(e) => setCareForm((f) => ({ ...f, value: e.target.value }))}
-                    className={inputCls}
-                  />
-                ) : (
-                  <textarea
-                    required
-                    rows={2}
-                    placeholder={careForm.type === 'feeding' ? 'e.g. 5ml formula, fed well' : 'Describe what you observed'}
-                    value={careForm.notes}
-                    onChange={(e) => setCareForm((f) => ({ ...f, notes: e.target.value }))}
-                    className={inputCls}
-                  />
-                )}
+                <label className="block text-xs font-medium text-gray-500 mb-1">Weight</label>
+                <textarea
+                  rows={1}
+                  placeholder="e.g. 450g"
+                  value={careForm.weight}
+                  onChange={(e) => setCareForm((f) => ({ ...f, weight: e.target.value }))}
+                  className={inputCls}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-gray-500 mb-1">Observation</label>
+                <textarea
+                  rows={2}
+                  placeholder="Describe what you observed"
+                  value={careForm.observation}
+                  onChange={(e) => setCareForm((f) => ({ ...f, observation: e.target.value }))}
+                  className={inputCls}
+                />
               </div>
             </div>
             <div className="flex gap-2">
@@ -573,12 +567,11 @@ export default function AnimalDetail() {
                       );
                     }
                     if (entry._timelineType === 'carelog') {
-                      const typeLabel = entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
                       const isCareEditing = editingCareId === entry._id;
                       return (
                         <div key={entry._id} className="bg-white rounded-lg shadow p-4">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded">{typeLabel}</span>
+                            <span className="text-xs font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded">Care Log</span>
                             <div className="flex items-center gap-3">
                               {entry.createdBy?.email && (
                                 <span className="text-xs text-gray-400">{entry.createdBy.email}</span>
@@ -587,7 +580,7 @@ export default function AnimalDetail() {
                                 <>
                                   {canEditCareLog(entry) && (
                                     <button
-                                      onClick={() => { setEditingCareId(entry._id); setCareEditForm({ date: entry.date?.split('T')[0] || '', type: entry.type, value: entry.value || '', notes: entry.notes || '' }); }}
+                                      onClick={() => { setEditingCareId(entry._id); setCareEditForm({ date: entry.date?.split('T')[0] || '', feeding: entry.feeding || '', weight: entry.weight || '', observation: entry.observation || '' }); }}
                                       className="text-xs text-blue-500 hover:text-blue-700"
                                     >Edit</button>
                                   )}
@@ -605,21 +598,17 @@ export default function AnimalDetail() {
                                   <label className="block text-xs font-medium text-gray-500 mb-1">Date *</label>
                                   <input type="date" required value={careEditForm.date} onChange={(e) => setCareEditForm((f) => ({ ...f, date: e.target.value }))} className={inputCls} />
                                 </div>
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-500 mb-1">Type *</label>
-                                  <select value={careEditForm.type} onChange={(e) => setCareEditForm((f) => ({ ...f, type: e.target.value, value: '', notes: '' }))} className={inputCls}>
-                                    <option value="feeding">Feeding</option>
-                                    <option value="weight">Weight</option>
-                                    <option value="observation">Observation</option>
-                                  </select>
+                                <div className="col-span-2">
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">Feeding</label>
+                                  <textarea rows={2} placeholder="e.g. 5ml formula, fed well" value={careEditForm.feeding} onChange={(e) => setCareEditForm((f) => ({ ...f, feeding: e.target.value }))} className={inputCls} />
                                 </div>
                                 <div className="col-span-2">
-                                  <label className="block text-xs font-medium text-gray-500 mb-1">{careEditForm.type === 'weight' ? 'Value *' : 'Notes *'}</label>
-                                  {careEditForm.type === 'weight' ? (
-                                    <input required value={careEditForm.value} onChange={(e) => setCareEditForm((f) => ({ ...f, value: e.target.value }))} className={inputCls} />
-                                  ) : (
-                                    <textarea required rows={2} value={careEditForm.notes} onChange={(e) => setCareEditForm((f) => ({ ...f, notes: e.target.value }))} className={inputCls} />
-                                  )}
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">Weight</label>
+                                  <textarea rows={1} placeholder="e.g. 450g" value={careEditForm.weight} onChange={(e) => setCareEditForm((f) => ({ ...f, weight: e.target.value }))} className={inputCls} />
+                                </div>
+                                <div className="col-span-2">
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">Observation</label>
+                                  <textarea rows={2} placeholder="Describe what you observed" value={careEditForm.observation} onChange={(e) => setCareEditForm((f) => ({ ...f, observation: e.target.value }))} className={inputCls} />
                                 </div>
                               </div>
                               <div className="flex gap-2">
@@ -629,8 +618,9 @@ export default function AnimalDetail() {
                             </div>
                           ) : (
                             <>
-                              {entry.value && <p className="text-sm font-medium text-gray-900 mt-2">{entry.value}</p>}
-                              {entry.notes && <p className="text-sm text-gray-500 mt-0.5">{entry.notes}</p>}
+                              {entry.feeding && <p className="text-sm text-gray-900 mt-2"><span className="font-medium">Feeding:</span> {entry.feeding}</p>}
+                              {entry.weight && <p className="text-sm text-gray-900 mt-1"><span className="font-medium">Weight:</span> {entry.weight}</p>}
+                              {entry.observation && <p className="text-sm text-gray-500 mt-1"><span className="font-medium">Observation:</span> {entry.observation}</p>}
                             </>
                           )}
                         </div>
