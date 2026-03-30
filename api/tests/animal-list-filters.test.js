@@ -92,6 +92,27 @@ describe('LIST-FILTER-02: underVigilance filter', () => {
     expect(res.body.length).toBe(1);
     expect(res.body[0].commonName).toBe('Vigilance Otter');
   });
+
+  test('list.filter.underVigilance.absent — returns all animals when underVigilance param is absent', async () => {
+    const { cookie } = await login('staff');
+
+    await request(app)
+      .post('/api/animals')
+      .set('Cookie', cookie)
+      .send({ commonName: 'Otter A', animalGroup: 'Mammal', intakeDate: new Date().toISOString(), underVigilance: true });
+
+    await request(app)
+      .post('/api/animals')
+      .set('Cookie', cookie)
+      .send({ commonName: 'Otter B', animalGroup: 'Mammal', intakeDate: new Date().toISOString(), underVigilance: false });
+
+    const res = await request(app)
+      .get('/api/animals')
+      .set('Cookie', cookie);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBe(2);
+  });
 });
 
 describe('LIST-FILTER-03: combined filters', () => {
@@ -112,6 +133,11 @@ describe('LIST-FILTER-03: combined filters', () => {
       .post('/api/animals')
       .set('Cookie', cookie)
       .send({ commonName: 'Neither', animalGroup: 'Mammal', intakeDate: new Date().toISOString(), inClinic: false, underVigilance: false });
+
+    await request(app)
+      .post('/api/animals')
+      .set('Cookie', cookie)
+      .send({ commonName: 'Only Vigilance', animalGroup: 'Mammal', intakeDate: new Date().toISOString(), inClinic: false, underVigilance: true });
 
     const res = await request(app)
       .get('/api/animals?inClinic=true&underVigilance=true')
