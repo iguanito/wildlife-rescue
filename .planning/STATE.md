@@ -146,3 +146,11 @@ Plan: 3 of 3
 *State initialized: 2026-03-20*
 *Milestone: v1*
 *Next: Phase 1 planning*
+
+---
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260330-lgr | Replace care log type selector with feeding/weight/observation text areas | 2026-03-30 | 639a3d1 | [260330-lgr-replace-care-log-type-selector-with-feed](.planning/quick/260330-lgr-replace-care-log-type-selector-with-feed/) |
