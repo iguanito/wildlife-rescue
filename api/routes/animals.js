@@ -7,11 +7,13 @@ const requireRole = require('../middleware/authorize');
 // GET /api/animals
 router.get('/', async (req, res) => {
   try {
-    const { status, species, search } = req.query;
+    const { status, species, search, inClinic, underVigilance } = req.query;
     const filter = {};
     if (status) filter.status = status;
     if (species) filter.species = new RegExp(species, 'i');
     if (search) filter.name = new RegExp(search, 'i');
+    if (inClinic === 'true') filter.inClinic = true;
+    if (underVigilance === 'true') filter.underVigilance = true;
     const animals = await Animal.find(filter).sort({ createdAt: -1 });
     res.json(animals);
   } catch (err) {
