@@ -41,11 +41,10 @@ describe('CARE-01: Staff can add care log entry', () => {
     const res = await request(app)
       .post(`/api/animals/${animalId}/carelogs`)
       .set('Cookie', cookie)
-      .send({ date: new Date().toISOString(), type: 'feeding', notes: 'Fed well' });
+      .send({ date: new Date().toISOString(), feeding: 'Fed well' });
 
     expect(res.status).toBe(201);
-    expect(res.body.type).toBe('feeding');
-    expect(res.body.notes).toBe('Fed well');
+    expect(res.body.feeding).toBe('Fed well');
   });
 
   test('care.create.forbidden — POST /api/animals/:id/carelogs with volunteer token returns 403', async () => {
@@ -56,7 +55,7 @@ describe('CARE-01: Staff can add care log entry', () => {
     const res = await request(app)
       .post(`/api/animals/${animalId}/carelogs`)
       .set('Cookie', volCookie)
-      .send({ date: new Date().toISOString(), type: 'feeding', notes: 'Fed well' });
+      .send({ date: new Date().toISOString(), feeding: 'Fed well' });
 
     expect(res.status).toBe(403);
   });
@@ -70,7 +69,7 @@ describe('CARE-02: Care log includes createdBy attribution', () => {
     const res = await request(app)
       .post(`/api/animals/${animalId}/carelogs`)
       .set('Cookie', cookie)
-      .send({ date: new Date().toISOString(), type: 'observation', notes: 'Looking alert' });
+      .send({ date: new Date().toISOString(), observation: 'Looking alert' });
 
     expect(res.status).toBe(201);
     expect(res.body.createdBy).toBeDefined();
@@ -92,12 +91,12 @@ describe('CARE-03: Staff can view all care logs for animal', () => {
     await request(app)
       .post(`/api/animals/${animalId}/carelogs`)
       .set('Cookie', cookie)
-      .send({ date: olderDate, type: 'feeding', notes: 'First feed' });
+      .send({ date: olderDate, feeding: 'First feed' });
 
     await request(app)
       .post(`/api/animals/${animalId}/carelogs`)
       .set('Cookie', cookie)
-      .send({ date: newerDate, type: 'weight', notes: 'Weight check' });
+      .send({ date: newerDate, weight: 'Weight check' });
 
     const res = await request(app)
       .get(`/api/animals/${animalId}/carelogs`)

@@ -144,10 +144,10 @@ router.put('/:id/carelogs/:logId', requireRole('staff', 'vet', 'admin'), async (
       }
     }
 
-    const { date, type, value, notes } = req.body;
+    const { date, feeding, weight, observation } = req.body;
     const updated = await CareLog.findByIdAndUpdate(
       req.params.logId,
-      { date, type, value, notes },
+      { date, feeding, weight, observation },
       { new: true, runValidators: true }
     ).populate('createdBy', 'email role');
     res.json(updated);
