@@ -22,11 +22,15 @@ export default function AnimalList() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? 'in-center');
+  const [inClinicFilter, setInClinicFilter] = useState(false);
+  const [underVigilanceFilter, setUnderVigilanceFilter] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     if (statusFilter) params.set('status', statusFilter);
+    if (inClinicFilter) params.set('inClinic', 'true');
+    if (underVigilanceFilter) params.set('underVigilance', 'true');
 
     setLoading(true);
     fetch(`/api/animals?${params}`)
@@ -34,7 +38,7 @@ export default function AnimalList() {
       .then(setAnimals)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [search, statusFilter]);
+  }, [search, statusFilter, inClinicFilter, underVigilanceFilter]);
 
   return (
     <div>
@@ -68,6 +72,24 @@ export default function AnimalList() {
           <option value="released">Released</option>
           <option value="deceased">Deceased</option>
         </select>
+        <label className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={inClinicFilter}
+            onChange={(e) => setInClinicFilter(e.target.checked)}
+            className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+          />
+          In clinic
+        </label>
+        <label className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={underVigilanceFilter}
+            onChange={(e) => setUnderVigilanceFilter(e.target.checked)}
+            className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+          />
+          Under vigilance
+        </label>
       </div>
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
