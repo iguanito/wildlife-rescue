@@ -2,9 +2,6 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:en.wikipedia.org)",
-      "Bash(node \"/home/arnaud/workspace/perso/wildlife-rescue/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"docs: initialize project\" --files .planning/PROJECT.md)",
-      "Bash(mkdir -p .planning)",
-      "Bash(node \"/home/arnaud/workspace/perso/wildlife-rescue/.claude/get-shit-done/bin/gsd-tools.cjs\" config-new-project '{\"\"mode\"\":\"\"yolo\"\",\"\"granularity\"\":\"\"standard\"\",\"\"parallelization\"\":true,\"\"commit_docs\"\":true,\"\"model_profile\"\":\"\"budget\"\",\"\"workflow\"\":{\"\"research\"\":true,\"\"plan_check\"\":true,\"\"verifier\"\":true,\"\"nyquist_validation\"\":true}}')",
       "WebSearch"
     ]
   }
