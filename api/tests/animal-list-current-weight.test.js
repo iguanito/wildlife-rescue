@@ -78,6 +78,7 @@ describe('LIST-WEIGHT-01: currentWeight on list endpoint', () => {
     const res = await request(app).get('/api/animals').set('Cookie', cookie);
 
     expect(res.status).toBe(200);
+    expect(res.body.length).toBe(1);
     expect(res.body[0].currentWeight).toBe('280');
   });
 
