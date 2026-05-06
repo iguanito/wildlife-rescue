@@ -24,7 +24,7 @@ export default function ColumnPickerModal({ visibleIds, onChange, onClose }) {
             >
               Reset to default
             </button>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+            <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
           </div>
         </div>
 
