@@ -3,6 +3,7 @@ import { COLUMNS, COLUMN_GROUPS, DEFAULT_COLUMN_IDS } from '../config/animalColu
 export default function ColumnPickerModal({ visibleIds, onChange, onClose }) {
   function toggle(id) {
     if (visibleIds.includes(id)) {
+      if (visibleIds.length === 1) return; // keep at least one column visible
       onChange(visibleIds.filter(v => v !== id));
     } else {
       onChange([...visibleIds, id]);

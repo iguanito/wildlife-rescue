@@ -21,7 +21,7 @@ function bool(val) {
 
 export const COLUMNS = [
   // Animal characteristics
-  { id: 'givenName',           label: 'Given name',        group: 'Animal characteristics', render: a => a.givenName || '—' },
+  { id: 'givenName',           label: 'Given name',        group: 'Animal characteristics', render: a => <span className="font-medium text-gray-900">{a.givenName || '—'}</span> },
   { id: 'commonName',          label: 'Common name',       group: 'Animal characteristics', render: a => a.commonName || '—' },
   { id: 'scientificName',      label: 'Scientific name',   group: 'Animal characteristics', render: a => a.scientificName || '—' },
   { id: 'animalGroup',         label: 'Group',             group: 'Animal characteristics', render: a => a.animalGroup || '—' },
