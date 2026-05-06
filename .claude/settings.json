@@ -1,12 +1,4 @@
 {
-  "hooks": {
-    "SessionStart": [
-    ],
-    "PostToolUse": [
-    ],
-    "PreToolUse": [
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(date:*)",
@@ -25,7 +17,13 @@
       "Bash(git status:*)",
       "Bash(git log:*)",
       "Bash(git diff:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(npm test:*)"
     ]
+  },
+  "hooks": {
+    "SessionStart": [],
+    "PostToolUse": [],
+    "PreToolUse": []
   }
 }
