@@ -1,18 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
-const STATUS_COLORS = {
-  'in-center': 'bg-blue-100 text-blue-800',
-  released: 'bg-teal-100 text-teal-800',
-  deceased: 'bg-gray-100 text-gray-600',
-};
-
-const STATUS_LABELS = {
-  'in-center': 'In the center',
-  released: 'Released',
-  deceased: 'Deceased',
-};
+import { COLUMNS } from '../config/animalColumns.jsx';
+import useColumnConfig from '../hooks/useColumnConfig.js';
+import ColumnPickerModal from '../components/ColumnPickerModal.jsx';
 
 export default function AnimalList() {
   const { user } = useAuth();
@@ -24,6 +15,10 @@ export default function AnimalList() {
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? 'in-center');
   const [inClinicFilter, setInClinicFilter] = useState(false);
   const [underVigilanceFilter, setUnderVigilanceFilter] = useState(false);
+  const [showColumnPicker, setShowColumnPicker] = useState(false);
+  const [visibleIds, setVisibleIds] = useColumnConfig();
+
+  const visibleColumns = visibleIds.map(id => COLUMNS.find(c => c.id === id)).filter(Boolean);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -34,9 +29,9 @@ export default function AnimalList() {
 
     setLoading(true);
     fetch(`/api/animals?${params}`)
-      .then((r) => r.json())
+      .then(r => r.json())
       .then(setAnimals)
-      .catch((e) => setError(e.message))
+      .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   }, [search, statusFilter, inClinicFilter, underVigilanceFilter]);
 
@@ -54,17 +49,17 @@ export default function AnimalList() {
         )}
       </div>
 
-      <div className="flex gap-3 mb-5">
+      <div className="flex items-center gap-3 mb-5 flex-wrap">
         <input
           type="text"
           placeholder="Search by name..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={e => setSearch(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-green-500"
         />
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={e => setStatusFilter(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
         >
           <option value="">All statuses</option>
@@ -76,7 +71,7 @@ export default function AnimalList() {
           <input
             type="checkbox"
             checked={inClinicFilter}
-            onChange={(e) => setInClinicFilter(e.target.checked)}
+            onChange={e => setInClinicFilter(e.target.checked)}
             className="rounded border-gray-300 text-green-600 focus:ring-green-500"
           />
           In clinic
@@ -85,11 +80,20 @@ export default function AnimalList() {
           <input
             type="checkbox"
             checked={underVigilanceFilter}
-            onChange={(e) => setUnderVigilanceFilter(e.target.checked)}
+            onChange={e => setUnderVigilanceFilter(e.target.checked)}
             className="rounded border-gray-300 text-green-600 focus:ring-green-500"
           />
           Under vigilance
         </label>
+        <button
+          onClick={() => setShowColumnPicker(true)}
+          className="ml-auto flex items-center gap-1.5 border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          ⊞ Columns
+          <span className="bg-green-700 text-white text-xs font-bold rounded-full px-1.5 py-0.5 leading-none">
+            {visibleIds.length}
+          </span>
+        </button>
       </div>
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
@@ -103,33 +107,25 @@ export default function AnimalList() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {['Name', 'Species', 'Intake Date', 'Status', ''].map((h) => (
+                {visibleColumns.map(col => (
                   <th
-                    key={h}
+                    key={col.id}
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    {h}
+                    {col.label}
                   </th>
                 ))}
+                <th className="px-6 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {animals.map((a) => (
+              {animals.map(a => (
                 <tr key={a._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{a.givenName}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{a.commonName}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {new Date(a.intakeDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                        STATUS_COLORS[a.status] ?? 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {STATUS_LABELS[a.status] ?? a.status}
-                    </span>
-                  </td>
+                  {visibleColumns.map(col => (
+                    <td key={col.id} className="px-6 py-4 text-sm text-gray-600">
+                      {col.render(a)}
+                    </td>
+                  ))}
                   <td className="px-6 py-4 text-right">
                     <Link
                       to={`/animals/${a._id}`}
@@ -143,6 +139,14 @@ export default function AnimalList() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {showColumnPicker && (
+        <ColumnPickerModal
+          visibleIds={visibleIds}
+          onChange={setVisibleIds}
+          onClose={() => setShowColumnPicker(false)}
+        />
       )}
     </div>
   );
