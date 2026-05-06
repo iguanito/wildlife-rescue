@@ -7,14 +7,42 @@ const requireRole = require('../middleware/authorize');
 // GET /api/animals
 router.get('/', async (req, res) => {
   try {
-    const { status, species, search, inClinic, underVigilance } = req.query;
-    const filter = {};
-    if (status) filter.status = status;
-    if (species) filter.species = new RegExp(species, 'i');
-    if (search) filter.name = new RegExp(search, 'i');
-    if (inClinic === 'true') filter.inClinic = true;
-    if (underVigilance === 'true') filter.underVigilance = true;
-    const animals = await Animal.find(filter).sort({ createdAt: -1 });
+    const { status, search, inClinic, underVigilance } = req.query;
+    const match = {};
+    if (status) match.status = status;
+    if (search) match.givenName = new RegExp(search, 'i');
+    if (inClinic === 'true') match.inClinic = true;
+    if (underVigilance === 'true') match.underVigilance = true;
+
+    const animals = await Animal.aggregate([
+      { $match: match },
+      {
+        $lookup: {
+          from: 'carelogs',
+          let: { animalId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$animal', '$$animalId'] },
+                weight: { $nin: [null, ''] },
+              },
+            },
+            { $sort: { date: -1 } },
+            { $limit: 1 },
+            { $project: { weight: 1 } },
+          ],
+          as: 'latestWeightLog',
+        },
+      },
+      {
+        $addFields: {
+          currentWeight: { $ifNull: [{ $arrayElemAt: ['$latestWeightLog.weight', 0] }, null] },
+        },
+      },
+      { $project: { latestWeightLog: 0 } },
+      { $sort: { createdAt: -1 } },
+    ]);
+
     res.json(animals);
   } catch (err) {
     res.status(500).json({ error: err.message });
