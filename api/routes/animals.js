@@ -10,7 +10,10 @@ router.get('/', async (req, res) => {
     const { status, search, inClinic, underVigilance } = req.query;
     const match = {};
     if (status) match.status = status;
-    if (search) match.givenName = new RegExp(search, 'i');
+    if (search) match.$or = [
+      { givenName: new RegExp(search, 'i') },
+      { commonName: new RegExp(search, 'i') },
+    ];
     if (inClinic === 'true') match.inClinic = true;
     if (underVigilance === 'true') match.underVigilance = true;
 

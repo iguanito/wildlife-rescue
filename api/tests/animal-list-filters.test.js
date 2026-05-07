@@ -148,3 +148,75 @@ describe('LIST-FILTER-03: combined filters', () => {
     expect(res.body[0].commonName).toBe('Both Flags');
   });
 });
+
+describe('LIST-FILTER-04: search by name or species', () => {
+  test('list.search.species — returns animal when search matches commonName', async () => {
+    const { cookie } = await login('staff');
+
+    await request(app)
+      .post('/api/animals')
+      .set('Cookie', cookie)
+      .send({ givenName: 'Buddy', commonName: 'Red Fox', animalGroup: 'Mammal', intakeDate: new Date().toISOString() });
+
+    await request(app)
+      .post('/api/animals')
+      .set('Cookie', cookie)
+      .send({ givenName: 'Zara', commonName: 'Golden Eagle', animalGroup: 'Bird', intakeDate: new Date().toISOString() });
+
+    const res = await request(app)
+      .get('/api/animals?search=fox')
+      .set('Cookie', cookie);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBe(1);
+    expect(res.body[0].givenName).toBe('Buddy');
+  });
+
+  test('list.search.name — returns animal when search matches givenName', async () => {
+    const { cookie } = await login('staff');
+
+    await request(app)
+      .post('/api/animals')
+      .set('Cookie', cookie)
+      .send({ givenName: 'Titi', commonName: 'Red Fox', animalGroup: 'Mammal', intakeDate: new Date().toISOString() });
+
+    await request(app)
+      .post('/api/animals')
+      .set('Cookie', cookie)
+      .send({ givenName: 'Rex', commonName: 'Golden Eagle', animalGroup: 'Bird', intakeDate: new Date().toISOString() });
+
+    const res = await request(app)
+      .get('/api/animals?search=titi')
+      .set('Cookie', cookie);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBe(1);
+    expect(res.body[0].givenName).toBe('Titi');
+  });
+
+  test('list.search.both — returns animals matching either givenName or commonName', async () => {
+    const { cookie } = await login('staff');
+
+    await request(app)
+      .post('/api/animals')
+      .set('Cookie', cookie)
+      .send({ givenName: 'Fox', commonName: 'Red Fox', animalGroup: 'Mammal', intakeDate: new Date().toISOString() });
+
+    await request(app)
+      .post('/api/animals')
+      .set('Cookie', cookie)
+      .send({ givenName: 'Buddy', commonName: 'Arctic Fox', animalGroup: 'Mammal', intakeDate: new Date().toISOString() });
+
+    await request(app)
+      .post('/api/animals')
+      .set('Cookie', cookie)
+      .send({ givenName: 'Zara', commonName: 'Golden Eagle', animalGroup: 'Bird', intakeDate: new Date().toISOString() });
+
+    const res = await request(app)
+      .get('/api/animals?search=fox')
+      .set('Cookie', cookie);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBe(2);
+  });
+});
