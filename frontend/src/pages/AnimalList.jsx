@@ -52,7 +52,7 @@ export default function AnimalList() {
       <div className="flex items-center gap-3 mb-5 flex-wrap">
         <input
           type="text"
-          placeholder="Search by name..."
+          placeholder="Search by name or species..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-green-500"
